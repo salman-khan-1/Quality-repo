@@ -59,7 +59,7 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 <div class="d-flex justify-content-between align-items-start mb-2">
   <div class="header-info">
     <p>Date: <span id="editableDate" contenteditable="true"></span></p>
-    <p>Store location: جدة</p>
+    <p>Store location: <span id="editableLocation" contenteditable="true">جدة</span></p>
     <p>Quality specialist: <span id="specialistNamePlaceholder">—</span></p>
   </div>
   <div class="text-center flex-grow-1">
@@ -139,8 +139,14 @@ let currentSet = 0;
 
 // Fill today's date automatically
 const editableDate = document.getElementById("editableDate");
+const editableLocation = document.getElementById("editableLocation");
 const now = new Date();
 editableDate.innerText = `${now.getDate()} ${now.toLocaleString('default',{month:'long'})} ${now.getFullYear()}`;
+
+// Ensure default location if empty
+if (!editableLocation.innerText.trim()) {
+  editableLocation.innerText = "جدة";
+}
 
 // Update numbering
 function updateNumbers() {
@@ -176,11 +182,13 @@ function saveSpecialist() {
   document.getElementById("specialistNamePlaceholder").innerText = specialistName;
 
   const enteredDate = editableDate.innerText.trim();
+  const enteredLocation = editableLocation.innerText.trim() || "جدة";
 
   let storedData = JSON.parse(localStorage.getItem("specialistsData")) || [];
   storedData.push({
     name: specialistName,
     date: enteredDate,
+    location: enteredLocation,
     suppliers: supplierRows,
     numbers: numbers,
     page: currentSet + 1
@@ -206,7 +214,7 @@ function generateCombinedReport() {
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div class="header-info">
           <p>Date: <span>${spec.date}</span></p>
-          <p>Store location: جدة</p>
+          <p>Store location: ${spec.location}</p>
           <p>Quality specialist: ${spec.name}</p>
         </div>
         <div class="text-center flex-grow-1">
