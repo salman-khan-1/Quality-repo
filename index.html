@@ -30,6 +30,8 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 .no-print { margin: 10px 0; }
 .page-break { page-break-before: always; }
 
+.autocomplete-list { position: absolute; border: 1px solid #ccc; background: #fff; z-index: 1000; max-height:150px; overflow-y:auto; }
+
 @media print {
   @page { size: A4 landscape; margin: 5mm; margin-top:42px; }
   body { margin: 0; padding: 0; background-color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -38,7 +40,9 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
   table th, table td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   tr { page-break-inside: avoid; }
   table input { display: none; }
-  td:empty::after { content: "-"; display: block; }
+
+  /* <-- changed: only rows marked .with-dash will get "-" for empty cells in print */
+  .with-dash td:empty::after { content: "-"; display: block; }
 }
 </style>
 </head>
@@ -46,20 +50,35 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 <div class="container-fluid">
 
 <div class="no-print mb-2">
-  <button class="btn btn-success" onclick="saveSpecialist()">Save Specialist Report</button>
-  <button class="btn btn-primary" onclick="generateCombinedReport()">Generate Combined Report</button>
-  <button class="btn btn-danger" onclick="clearAllSpecialists()">Clear All Specialists</button>
+  <button class="btn btn-success" onclick="saveSpecialist()">Save Report</button>
+  <button class="btn btn-primary" onclick="generateCombinedReport()">Generate Report</button>
+  <button class="btn btn-danger" onclick="clearAllSpecialists()">Clear All Reports</button>
   <button class="btn btn-secondary" onclick="window.print()">Print</button>
-  <button class="btn btn-warning" onclick="nextSet()">Increase No.</button>
-  <button class="btn btn-info" onclick="resetNumbers()">Reset No.</button>
+  <button class="btn btn-warning" onclick="nextSet()">page +.</button>
+  <button class="btn btn-info" onclick="resetNumbers()">Reset page</button>
+  <!-- Supplier Backup & Admin -->
+  <button class="btn btn-outline-dark" onclick="backupSuppliers()">Backup Suppliers</button>
+  <input type="file" id="restoreFile" style="display:none" onchange="restoreSuppliers(event)">
+  <button class="btn btn-outline-secondary" onclick="document.getElementById('restoreFile').click()">Restore Suppliers</button>
+  <button class="btn btn-outline-info" onclick="toggleAdminPanel()">Manage Suppliers</button>
 </div>
 
-<!-- Header with date and page info -->
+<!-- Admin Panel -->
+<div class="no-print">
+<div id="adminPanel" style="display:none; margin-top:10px; background:#fff; border:1px solid #ccc; padding:10px; border-radius:8px;">
+  <h6>Saved Suppliers</h6>
+  <table class="table table-sm table-bordered">
+    <thead><tr><th>Name</th><th>Code</th><th>Actions</th></tr></thead>
+    <tbody id="adminTableBody"></tbody>
+  </table>
+</div>
+</div>
+<!-- Header -->
 <div class="no-print">
 <div class="d-flex justify-content-between align-items-start mb-2">
   <div class="header-info">
     <p>Date: <span id="editableDate" contenteditable="true"></span></p>
-    <p>Store location: <span id="editableLocation" contenteditable="true">جدة</span></p>
+    <p>Store location: جدة</p>
     <p>Quality specialist: <span id="specialistNamePlaceholder">—</span></p>
   </div>
   <div class="text-center flex-grow-1">
@@ -74,6 +93,7 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 </div>
 <div id="setInfo" class="page-number">Page 1</div>
 </div>
+
 <div class="table-responsive" id="entrySection">
   <table class="table table-bordered table-sm" id="reportTable">
     <thead>
@@ -105,11 +125,12 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
     </thead>
     <tbody>
       <script>
+        // generate 12 rows exactly matching your original inputs
         for (let i = 1; i <= 12; i++) {
           document.write('<tr>'+
             '<td>'+i+'</td>'+
-            '<td><input type="text"></td>'+
-            '<td><input type="number"></td>'+
+            '<td><input type="text" oninput="autoFillFromName(this)" onblur="saveSupplierPair(this)"></td>'+
+            '<td><input type="number" oninput="autoFillFromCode(this)" onblur="saveSupplierPair(this)"></td>'+
             '<td><input type="text"></td>'+
             '<td><input type="number"></td>'+
             '<td><input type="number"></td>'+
@@ -131,38 +152,29 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 </div>
 
 <div id="combinedReports"></div>
-
 </div>
 
 <script>
+// -------------------- DATE & NUMBERING --------------------
 let currentSet = 0;
-
-// Fill today's date automatically
 const editableDate = document.getElementById("editableDate");
-const editableLocation = document.getElementById("editableLocation");
 const now = new Date();
 editableDate.innerText = `${now.getDate()} ${now.toLocaleString('default',{month:'long'})} ${now.getFullYear()}`;
 
-// Ensure default location if empty
-if (!editableLocation.innerText.trim()) {
-  editableLocation.innerText = "جدة";
-}
-
-// Update numbering
 function updateNumbers() {
   document.querySelectorAll("#reportTable tbody tr").forEach((row, index) => {
     row.cells[0].innerText = index + 1 + (currentSet * 12);
   });
   document.getElementById("setInfo").innerText = `Page ${currentSet + 1}`;
 }
-
 function nextSet() { currentSet++; updateNumbers(); }
 function resetNumbers() { currentSet = 0; updateNumbers(); }
 function clearTable() {
   document.querySelectorAll("#reportTable tbody tr input").forEach(input => input.value = "");
 }
 
-// Save specialist report
+// -------------------- SPECIALIST STORAGE --------------------
+// Saves all 12 rows, but requires at least one non-empty row
 function saveSpecialist() {
   const rows = document.querySelectorAll("#reportTable tbody tr");
   let supplierRows = [];
@@ -170,25 +182,24 @@ function saveSpecialist() {
   rows.forEach(row => {
     let rowData = [];
     row.querySelectorAll("input").forEach(input => rowData.push(input.value.trim()));
-    if (rowData.some(val => val !== "")) {
-      supplierRows.push(rowData);
-      numbers.push(row.cells[0].innerText);
-    }
+    supplierRows.push(rowData);   // save every row (so report will always have 12 rows)
+    numbers.push(row.cells[0].innerText);
   });
-  if (supplierRows.length === 0) { alert("Enter at least one supplier."); return; }
+
+  // require at least one row with some data
+  const hasAny = supplierRows.some(r => r.some(v => v !== ""));
+  if (!hasAny) { alert("Enter at least one supplier."); return; }
 
   const specialistName = prompt("Enter Quality Specialist Name:");
   if (!specialistName) return;
   document.getElementById("specialistNamePlaceholder").innerText = specialistName;
 
   const enteredDate = editableDate.innerText.trim();
-  const enteredLocation = editableLocation.innerText.trim() || "جدة";
 
   let storedData = JSON.parse(localStorage.getItem("specialistsData")) || [];
   storedData.push({
     name: specialistName,
     date: enteredDate,
-    location: enteredLocation,
     suppliers: supplierRows,
     numbers: numbers,
     page: currentSet + 1
@@ -199,7 +210,7 @@ function saveSpecialist() {
   clearTable(); resetNumbers();
 }
 
-// Generate combined report
+// -------------------- GENERATE COMBINED REPORT --------------------
 function generateCombinedReport() {
   const container = document.getElementById("combinedReports");
   container.innerHTML = "";
@@ -208,13 +219,12 @@ function generateCombinedReport() {
 
   specialistsData.forEach((spec, sIndex) => {
     if (sIndex > 0) container.innerHTML += '<div class="page-break"></div>';
-
     const pageDiv = document.createElement("div");
     pageDiv.innerHTML = `
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div class="header-info">
           <p>Date: <span>${spec.date}</span></p>
-          <p>Store location: ${spec.location}</p>
+          <p>Store location: جدة</p>
           <p>Quality specialist: ${spec.name}</p>
         </div>
         <div class="text-center flex-grow-1">
@@ -236,18 +246,29 @@ function generateCombinedReport() {
     `;
     container.appendChild(pageDiv);
     const tbody = pageDiv.querySelector("tbody");
+
+    // Now render exactly the 12 saved rows.
     spec.suppliers.forEach((rowData, idx) => {
-      let rowHTML = `<tr><td>${spec.numbers[idx]}</td>`;
-      rowData.forEach(val => rowHTML += `<td>${val || ''}</td>`);
-      rowHTML += `</tr>`;
-      tbody.innerHTML += rowHTML;
+      const supplierName = rowData[0]; // supplier name is the first input in saved rowData
+      if (!supplierName) {
+        // Supplier name empty → keep the entire row empty (but keep the No. column)
+        tbody.innerHTML += `<tr><td>${spec.numbers[idx]}</td>` 
+          + rowData.map(() => `<td></td>`).join('') 
+          + `</tr>`;
+      } else {
+        // Supplier name present → show values, empty cells become '-'
+        // Mark row with class 'with-dash' so print CSS only applies to these rows
+        let rowHTML = `<tr class="with-dash"><td>${spec.numbers[idx]}</td>`;
+        rowData.forEach(val => rowHTML += `<td>${val || '-'}</td>`);
+        rowHTML += `</tr>`;
+        tbody.innerHTML += rowHTML;
+      }
     });
   });
-
   alert("Combined report generated! Each report will print on a separate page.");
 }
 
-// Clear all saved specialists
+// -------------------- CLEAR SAVED SPECIALISTS --------------------
 function clearAllSpecialists() {
   if (confirm("Clear ALL saved specialists’ reports?")) {
     localStorage.removeItem("specialistsData");
@@ -257,6 +278,162 @@ function clearAllSpecialists() {
     alert("All specialists cleared.");
   }
 }
+
+// -------------------- SUPPLIER MEMORY SYSTEM --------------------
+let suppliers = JSON.parse(localStorage.getItem("suppliers")) || {}; 
+// format: { "Nestlé": "101", ... } (name => code)
+
+function autoFillFromName(input) {
+  const row = input.closest("tr");
+  const name = input.value.trim();
+  const codeInput = row.cells[2].querySelector("input");
+  if (suppliers[name]) codeInput.value = suppliers[name];
+
+  if (name.length > 0) {
+    const matches = Object.keys(suppliers).filter(n => n.toLowerCase().includes(name.toLowerCase()));
+    showSuggestions(input, matches);
+  } else closeSuggestions();
+}
+
+function autoFillFromCode(input) {
+  const row = input.closest("tr");
+  const code = input.value.trim();
+  const nameInput = row.cells[1].querySelector("input");
+  const foundName = Object.keys(suppliers).find(n => suppliers[n] === code);
+  if (foundName) nameInput.value = foundName;
+
+  if (code.length > 0) {
+    const matches = Object.values(suppliers).filter(c => c.toString().startsWith(code.toString()));
+    showSuggestions(input, matches);
+  } else closeSuggestions();
+}
+
+function saveSupplierPair(input) {
+  const row = input.closest("tr");
+  const name = row.cells[1].querySelector("input").value.trim();
+  const code = row.cells[2].querySelector("input").value.trim();
+  if (name && code) {
+    // save mapping name -> code
+    suppliers[name] = code;
+    localStorage.setItem("suppliers", JSON.stringify(suppliers));
+    refreshAdminPanel();
+  }
+}
+
+// -------------------- AUTOCOMPLETE --------------------
+function showSuggestions(input, suggestions) {
+  closeSuggestions();
+  if (!suggestions || !suggestions.length) return;
+
+  const list = document.createElement("div");
+  list.className = "autocomplete-list";
+  Object.assign(list.style, {position:"absolute", border:"1px solid #ccc", background:"#fff", zIndex:1000, maxHeight:"150px", overflowY:"auto", width: input.offsetWidth + "px"});
+
+  suggestions.forEach(item=>{
+    const option = document.createElement("div");
+    // Display nicely: if item is a name (key), show "Name (Code)", else show "Code (Name)"
+    if (suppliers[item] !== undefined) {
+      option.textContent = `${item} (${suppliers[item]})`;
+    } else {
+      // item might be a code - find name
+      const foundName = Object.keys(suppliers).find(n => suppliers[n] === item);
+      option.textContent = foundName ? `${item} (${foundName})` : item;
+    }
+
+    option.style.padding = "4px";
+    option.style.cursor = "pointer";
+
+    option.onmousedown = (ev) => {
+      // when user picks suggestion, set both name & code appropriately for that row
+      const row = input.closest("tr");
+      // if item is a known name
+      if (suppliers[item] !== undefined) {
+        row.cells[1].querySelector("input").value = item;
+        row.cells[2].querySelector("input").value = suppliers[item];
+      } else {
+        // item likely a code -> find corresponding name
+        const foundName = Object.keys(suppliers).find(n => suppliers[n] === item);
+        if (foundName) {
+          row.cells[1].querySelector("input").value = foundName;
+          row.cells[2].querySelector("input").value = item;
+        } else {
+          // fallback: set input value only
+          input.value = item;
+        }
+      }
+      // Save mapping (in case picking sets both fields)
+      saveSupplierPair(input);
+      closeSuggestions();
+    };
+    list.appendChild(option);
+  });
+
+  // attach to the input's TD so absolute positions are relative
+  const parent = input.parentNode;
+  parent.style.position = "relative";
+  parent.appendChild(list);
+}
+
+function closeSuggestions() { document.querySelectorAll(".autocomplete-list").forEach(el=>el.remove()); }
+document.addEventListener("click", function(e){
+  // allow click handlers on suggestion to run (onmousedown), then close
+  closeSuggestions();
+});
+
+// -------------------- BACKUP & RESTORE --------------------
+function backupSuppliers() {
+  const data = localStorage.getItem("suppliers") || "{}";
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download="suppliers-backup.json"; a.click();
+  URL.revokeObjectURL(url); alert("Suppliers backup downloaded!");
+}
+
+function restoreSuppliers(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (typeof imported==="object" && !Array.isArray(imported)) {
+        localStorage.setItem("suppliers", JSON.stringify(imported));
+        suppliers = imported; refreshAdminPanel(); alert("Suppliers restored!");
+      } else {
+        alert("Invalid file!");
+      }
+    } catch (err) {
+      alert("Error reading file!");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// -------------------- ADMIN PANEL --------------------
+function toggleAdminPanel() {
+  const panel=document.getElementById("adminPanel");
+  panel.style.display = (panel.style.display === "none") ? "block" : "none";
+  refreshAdminPanel();
+}
+function refreshAdminPanel() {
+  const tbody=document.getElementById("adminTableBody"); if(!tbody) return;
+  tbody.innerHTML="";
+  Object.keys(suppliers).forEach(name=>{
+    const code=suppliers[name];
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${name}</td><td>${code}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteSupplier('${name.replace(/'/g, "\\'")}')">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function deleteSupplier(name){
+  if(confirm("Delete supplier: "+name+"?")){
+    delete suppliers[name]; localStorage.setItem("suppliers", JSON.stringify(suppliers));
+    refreshAdminPanel();
+  }
+}
+
+// initialize admin panel if any
+refreshAdminPanel();
 </script>
 </body>
 </html>
