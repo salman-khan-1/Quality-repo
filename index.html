@@ -13,7 +13,6 @@ table th { background-color: #a0a0a0 !important; font-weight: bold; }
 table td { font-weight: 600 !important; padding: 9.5px 3px !important; }
 table input { width: 100%; border: none; text-align: center; font-size: 13px; font-weight: 600; padding: 2px; background-color: transparent; }
 
-/* Column widths */
 .col-no { width: 30px; }
 .col-name { width: 160px; }
 .col-code { width: 105px; }
@@ -129,8 +128,8 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
         for (let i = 1; i <= 12; i++) {
           document.write('<tr>'+
             '<td>'+i+'</td>'+
-            '<td><input type="text" oninput="autoFillFromName(this)" onblur="saveSupplierPair(this)"></td>'+
-            '<td><input type="number" oninput="autoFillFromCode(this)" onblur="saveSupplierPair(this)"></td>'+
+            '<td><input type="text" oninput="showSuggestionsName(this)" onblur="saveSupplierPair(this)"></td>'+
+            '<td><input type="number" oninput="showSuggestionsCode(this)" onblur="saveSupplierPair(this)"></td>'+
             '<td><input type="text"></td>'+
             '<td><input type="number"></td>'+
             '<td><input type="number"></td>'+
@@ -151,7 +150,6 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
   </table>
 </div>
 
-<div id="combinedReports"></div>
 <script>
 // -------------------- DATE & NUMBERING --------------------
 let currentSet = 0;
@@ -167,100 +165,227 @@ function updateNumbers() {
 }
 function nextSet() { currentSet++; updateNumbers(); }
 function resetNumbers() { currentSet = 0; updateNumbers(); }
-function clearTable() {
-  document.querySelectorAll("#reportTable tbody tr input").forEach(input => input.value = "");
+function clearTable() { document.querySelectorAll("#reportTable tbody tr input").forEach(i=>i.value=""); }
+</script>
+<script>
+// -------------------- SUPPLIERS STORAGE --------------------
+let suppliers = JSON.parse(localStorage.getItem("suppliers")) || {}; // format: { code: name }
+
+// Save supplier pair (onblur)
+function saveSupplierPair(input) {
+    const row = input.closest("tr");
+    const name = row.cells[1].querySelector("input").value.trim();
+    const code = row.cells[2].querySelector("input").value.trim();
+    if (name && code) {
+        suppliers[code] = name; // store as code -> name
+        localStorage.setItem("suppliers", JSON.stringify(suppliers));
+        refreshAdminPanel();
+    }
+}
+
+// -------------------- SUGGESTIONS-ONLY AUTOCOMPLETE --------------------
+function showSuggestionsName(input) {
+    const query = input.value.trim().toLowerCase();
+    const matches = Object.entries(suppliers)
+        .filter(([code, name]) => name.toLowerCase().includes(query))
+        .map(([code, name]) => ({name, code}));
+
+    showSuggestions(input, matches);
+}
+
+function showSuggestionsCode(input) {
+    const query = input.value.trim();
+    const matches = Object.entries(suppliers)
+        .filter(([code, name]) => code.startsWith(query))
+        .map(([code, name]) => ({name, code}));
+
+    showSuggestions(input, matches);
+}
+
+// Render suggestion list (click-only)
+function showSuggestions(input, suggestions) {
+    closeSuggestions();
+    if (!suggestions.length) return;
+
+    const list = document.createElement("div");
+    list.className = "autocomplete-list";
+    list.style.width = input.offsetWidth + "px";
+
+    suggestions.forEach(item => {
+        const option = document.createElement("div");
+        option.textContent = `${item.name} (${item.code})`;
+        option.style.padding = "4px";
+        option.style.cursor = "pointer";
+
+        option.onmousedown = () => {
+            const row = input.closest("tr");
+            row.cells[1].querySelector("input").value = item.name;
+            row.cells[2].querySelector("input").value = item.code;
+            saveSupplierPair(input);
+            closeSuggestions();
+        };
+
+        list.appendChild(option);
+    });
+
+    input.parentNode.style.position = "relative";
+    input.parentNode.appendChild(list);
+}
+
+// Close all suggestion lists
+function closeSuggestions() {
+    document.querySelectorAll(".autocomplete-list").forEach(el => el.remove());
+}
+
+document.addEventListener("click", closeSuggestions);
+
+// -------------------- ADMIN PANEL --------------------
+function toggleAdminPanel() {
+    const panel = document.getElementById("adminPanel");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+    refreshAdminPanel();
+}
+
+function refreshAdminPanel() {
+    const tbody = document.getElementById("adminTableBody");
+    tbody.innerHTML = "";
+    Object.entries(suppliers).forEach(([code, name]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${name}</td><td>${code}</td>
+            <td><button class="btn btn-sm btn-danger" onclick="deleteSupplier('${code}')">Delete</button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function deleteSupplier(code) {
+    if (confirm("Delete supplier with code: " + code + "?")) {
+        delete suppliers[code];
+        localStorage.setItem("suppliers", JSON.stringify(suppliers));
+        refreshAdminPanel();
+    }
+}
+
+// -------------------- BACKUP & RESTORE --------------------
+function backupSuppliers() {
+    const data = JSON.stringify(suppliers);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "suppliers-backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    alert("Suppliers backup downloaded!");
+}
+
+function restoreSuppliers(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (typeof imported === "object" && !Array.isArray(imported)) {
+                suppliers = imported;
+                localStorage.setItem("suppliers", JSON.stringify(suppliers));
+                refreshAdminPanel();
+                alert("Suppliers restored!");
+            } else alert("Invalid file!");
+        } catch (err) { alert("Error reading file!"); }
+    };
+    reader.readAsText(file);
 }
 
 // -------------------- SPECIALIST STORAGE --------------------
 function saveSpecialist() {
-  const rows = document.querySelectorAll("#reportTable tbody tr");
-  let supplierRows = [];
-  let numbers = [];
-  rows.forEach(row => {
-    let rowData = [];
-    row.querySelectorAll("input").forEach(input => rowData.push(input.value.trim()));
-    supplierRows.push(rowData);
-    numbers.push(row.cells[0].innerText);
-  });
-
-  const hasAny = supplierRows.some(r => r.some(v => v !== ""));
-  if (!hasAny) { alert("Enter at least one supplier."); return; }
-
-  const specialistName = prompt("Enter Quality Specialist Name:");
-  if (!specialistName) return;
-  document.getElementById("specialistNamePlaceholder").innerText = specialistName;
-
-  const storeName = document.getElementById("editableStore").innerText.trim();
-  const enteredDate = editableDate.innerText.trim();
-
-  let storedData = JSON.parse(localStorage.getItem("specialistsData")) || [];
-  storedData.push({
-    name: specialistName,
-    store: storeName,
-    date: enteredDate,
-    suppliers: supplierRows,
-    numbers: numbers,
-    page: currentSet + 1
-  });
-  localStorage.setItem("specialistsData", JSON.stringify(storedData));
-
-  alert(`Report saved for ${specialistName}`);
-  clearTable(); resetNumbers();
-}
-
-// -------------------- GENERATE COMBINED REPORT --------------------
-function generateCombinedReport() {
-  const container = document.getElementById("combinedReports");
-  container.innerHTML = "";
-  const specialistsData = JSON.parse(localStorage.getItem("specialistsData")) || [];
-  if(specialistsData.length === 0) { alert("No saved specialists to generate report."); return; }
-
-  specialistsData.forEach((spec, sIndex) => {
-    if (sIndex > 0) container.innerHTML += '<div class="page-break"></div>';
-    const pageDiv = document.createElement("div");
-    pageDiv.innerHTML = `
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <div class="header-info">
-          <p>Date: <span>${spec.date}</span></p>
-          <p>Store location: ${spec.store}</p>
-          <p>Quality specialist: ${spec.name}</p>
-        </div>
-        <div class="text-center flex-grow-1">
-          <h6 class="fw-bold text-decoration-underline" style="font-size:13px; margin-top:10px;">
-            Daily report of checking goods received from suppliers
-          </h6>
-        </div>
-        <div class="text-end header-info">
-          <p>Makhazen Alenayah</p>
-          <p>Quality section</p>
-        </div>
-      </div>
-      <div class="page-number">Page ${spec.page}</div>
-      <table class="table table-bordered table-sm">
-        <thead>${document.querySelector("#reportTable thead").innerHTML}</thead>
-        <tbody></tbody>
-      </table>
-      <div class="signature"><span>Signature</span></div>
-    `;
-    container.appendChild(pageDiv);
-    const tbody = pageDiv.querySelector("tbody");
-
-    spec.suppliers.forEach((rowData, idx) => {
-      const supplierName = rowData[0];
-      if (!supplierName) {
-        tbody.innerHTML += `<tr><td>${spec.numbers[idx]}</td>` + rowData.map(() => `<td></td>`).join('') + `</tr>`;
-      } else {
-        let rowHTML = `<tr class="with-dash"><td>${spec.numbers[idx]}</td>`;
-        rowData.forEach(val => rowHTML += `<td>${val || '-'}</td>`);
-        rowHTML += `</tr>`;
-        tbody.innerHTML += rowHTML;
-      }
+    const rows = document.querySelectorAll("#reportTable tbody tr");
+    let supplierRows = [];
+    let numbers = [];
+    rows.forEach(row => {
+        let rowData = [];
+        row.querySelectorAll("input").forEach(input => rowData.push(input.value.trim()));
+        supplierRows.push(rowData);
+        numbers.push(row.cells[0].innerText);
     });
-  });
-  alert("Combined report generated! Each report will print on a separate page.");
+
+    const hasAny = supplierRows.some(r => r.some(v => v !== ""));
+    if (!hasAny) { alert("Enter at least one supplier."); return; }
+
+    const specialistName = prompt("Enter Quality Specialist Name:");
+    if (!specialistName) return;
+    document.getElementById("specialistNamePlaceholder").innerText = specialistName;
+
+    const storeName = document.getElementById("editableStore").innerText.trim();
+    const enteredDate = editableDate.innerText.trim();
+
+    let storedData = JSON.parse(localStorage.getItem("specialistsData")) || [];
+    storedData.push({
+        name: specialistName,
+        store: storeName,
+        date: enteredDate,
+        suppliers: supplierRows,
+        numbers: numbers,
+        page: currentSet + 1
+    });
+    localStorage.setItem("specialistsData", JSON.stringify(storedData));
+
+    alert(`Report saved for ${specialistName}`);
+    clearTable(); resetNumbers();
 }
 
-// -------------------- CLEAR SAVED SPECIALISTS --------------------
+// -------------------- REPORT GENERATION --------------------
+function generateCombinedReport() {
+    const container = document.getElementById("combinedReports");
+    container.innerHTML = "";
+    const specialistsData = JSON.parse(localStorage.getItem("specialistsData")) || [];
+    if(specialistsData.length === 0) { alert("No saved specialists to generate report."); return; }
+
+    specialistsData.forEach((spec, sIndex) => {
+        if (sIndex > 0) container.innerHTML += '<div class="page-break"></div>';
+        const pageDiv = document.createElement("div");
+        pageDiv.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="header-info">
+              <p>Date: <span>${spec.date}</span></p>
+              <p>Store location: ${spec.store}</p>
+              <p>Quality specialist: ${spec.name}</p>
+            </div>
+            <div class="text-center flex-grow-1">
+              <h6 class="fw-bold text-decoration-underline" style="font-size:13px; margin-top:10px;">
+                Daily report of checking goods received from suppliers
+              </h6>
+            </div>
+            <div class="text-end header-info">
+              <p>Makhazen Alenayah</p>
+              <p>Quality section</p>
+            </div>
+          </div>
+          <div class="page-number">Page ${spec.page}</div>
+          <table class="table table-bordered table-sm">
+            <thead>${document.querySelector("#reportTable thead").innerHTML}</thead>
+            <tbody></tbody>
+          </table>
+          <div class="signature"><span>Signature</span></div>
+        `;
+        container.appendChild(pageDiv);
+        const tbody = pageDiv.querySelector("tbody");
+
+        spec.suppliers.forEach((rowData, idx) => {
+            const supplierName = rowData[0].trim();
+            if (!supplierName) {
+                tbody.innerHTML += `<tr><td>${spec.numbers[idx]}</td>` + rowData.map(() => `<td></td>`).join('') + `</tr>`;
+            } else {
+                const rowHTML = `<tr class="with-dash"><td>${spec.numbers[idx]}</td>` +
+                    rowData.map(val => `<td>${val.trim() !== "" ? val : '-'}</td>`).join('') +
+                    `</tr>`;
+                tbody.innerHTML += rowHTML;
+            }
+        });
+    });
+    alert("Combined report generated! Each report will print on a separate page.");
+}
+
+// -------------------- CLEAR ALL --------------------
 function clearAllSpecialists() {
   if (confirm("Clear ALL saved specialists’ reports?")) {
     localStorage.removeItem("specialistsData");
@@ -268,128 +393,6 @@ function clearAllSpecialists() {
     document.getElementById("combinedReports").innerHTML = "";
     resetNumbers();
     alert("All Reports cleared.");
-  }
-}
-
-// -------------------- SUPPLIER MEMORY --------------------
-let suppliers = JSON.parse(localStorage.getItem("suppliers")) || {};
-
-function autoFillFromName(input) {
-  const row = input.closest("tr");
-  const name = input.value.trim();
-  const codeInput = row.cells[2].querySelector("input");
-  if (suppliers[name]) codeInput.value = suppliers[name];
-
-  if (name.length > 0) {
-    const matches = Object.keys(suppliers).filter(n => n.toLowerCase().includes(name.toLowerCase()));
-    showSuggestions(input, matches);
-  } else closeSuggestions();
-}
-
-function autoFillFromCode(input) {
-  const row = input.closest("tr");
-  const code = input.value.trim();
-  const nameInput = row.cells[1].querySelector("input");
-  const foundName = Object.keys(suppliers).find(n => suppliers[n] === code);
-  if (foundName) nameInput.value = foundName;
-
-  if (code.length > 0) {
-    const matches = Object.values(suppliers).filter(c => c.toString().startsWith(code.toString()));
-    showSuggestions(input, matches);
-  } else closeSuggestions();
-}
-
-function saveSupplierPair(input) {
-  const row = input.closest("tr");
-  const name = row.cells[1].querySelector("input").value.trim();
-  const code = row.cells[2].querySelector("input").value.trim();
-  if (name && code) {
-    suppliers[name] = code;
-    localStorage.setItem("suppliers", JSON.stringify(suppliers));
-    refreshAdminPanel();
-  }
-}
-
-// -------------------- AUTOCOMPLETE --------------------
-function showSuggestions(input, suggestions) {
-  closeSuggestions();
-  if (!suggestions || !suggestions.length) return;
-  const list = document.createElement("div");
-  list.className = "autocomplete-list";
-  Object.assign(list.style, {position:"absolute", border:"1px solid #ccc", background:"#fff", zIndex:1000, maxHeight:"150px", overflowY:"auto", width: input.offsetWidth + "px"});
-  suggestions.forEach(item=>{
-    const option = document.createElement("div");
-    option.textContent = suppliers[item] !== undefined ? `${item} (${suppliers[item]})` : item;
-    option.style.padding = "4px"; option.style.cursor = "pointer";
-    option.onmousedown = () => {
-      const row = input.closest("tr");
-      if (suppliers[item] !== undefined) {
-        row.cells[1].querySelector("input").value = item;
-        row.cells[2].querySelector("input").value = suppliers[item];
-      } else {
-        const foundName = Object.keys(suppliers).find(n => suppliers[n] === item);
-        if (foundName) {
-          row.cells[1].querySelector("input").value = foundName;
-          row.cells[2].querySelector("input").value = item;
-        } else input.value = item;
-      }
-      saveSupplierPair(input);
-      closeSuggestions();
-    };
-    list.appendChild(option);
-  });
-  input.parentNode.style.position = "relative";
-  input.parentNode.appendChild(list);
-}
-
-function closeSuggestions() { document.querySelectorAll(".autocomplete-list").forEach(el=>el.remove()); }
-document.addEventListener("click", closeSuggestions);
-
-// -------------------- BACKUP & RESTORE --------------------
-function backupSuppliers() {
-  const data = localStorage.getItem("suppliers") || "{}";
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download="suppliers-backup.json"; a.click();
-  URL.revokeObjectURL(url); alert("Suppliers backup downloaded!");
-}
-
-function restoreSuppliers(event) {
-  const file = event.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (typeof imported==="object" && !Array.isArray(imported)) {
-        localStorage.setItem("suppliers", JSON.stringify(imported));
-        suppliers = imported; refreshAdminPanel(); alert("Suppliers restored!");
-      } else alert("Invalid file!");
-    } catch (err) { alert("Error reading file!"); }
-  };
-  reader.readAsText(file);
-}
-
-// -------------------- ADMIN PANEL --------------------
-function toggleAdminPanel() {
-  const panel=document.getElementById("adminPanel");
-  panel.style.display = (panel.style.display === "none") ? "block" : "none";
-  refreshAdminPanel();
-}
-function refreshAdminPanel() {
-  const tbody=document.getElementById("adminTableBody"); if(!tbody) return;
-  tbody.innerHTML="";
-  Object.keys(suppliers).forEach(name=>{
-    const code=suppliers[name];
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${name}</td><td>${code}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteSupplier('${name.replace(/'/g, "\\'")}')">Delete</button></td>`;
-    tbody.appendChild(tr);
-  });
-}
-function deleteSupplier(name){
-  if(confirm("Delete supplier: "+name+"?")){
-    delete suppliers[name]; localStorage.setItem("suppliers", JSON.stringify(suppliers));
-    refreshAdminPanel();
   }
 }
 
