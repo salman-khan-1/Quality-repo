@@ -150,6 +150,9 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
   </table>
 </div>
 
+<!-- Container for Generated Reports -->
+<div id="combinedReports"></div>
+
 <script>
 // -------------------- DATE & NUMBERING --------------------
 let currentSet = 0;
@@ -169,15 +172,15 @@ function clearTable() { document.querySelectorAll("#reportTable tbody tr input")
 </script>
 <script>
 // -------------------- SUPPLIERS STORAGE --------------------
-let suppliers = JSON.parse(localStorage.getItem("suppliers")) || {}; // format: { code: name }
+let suppliers = JSON.parse(localStorage.getItem("suppliers")) || {}; // { code: name }
 
-// Save supplier pair (onblur)
+// Save supplier pair on blur
 function saveSupplierPair(input) {
     const row = input.closest("tr");
     const name = row.cells[1].querySelector("input").value.trim();
     const code = row.cells[2].querySelector("input").value.trim();
     if (name && code) {
-        suppliers[code] = name; // store as code -> name
+        suppliers[code] = name; // store code -> name
         localStorage.setItem("suppliers", JSON.stringify(suppliers));
         refreshAdminPanel();
     }
@@ -189,7 +192,6 @@ function showSuggestionsName(input) {
     const matches = Object.entries(suppliers)
         .filter(([code, name]) => name.toLowerCase().includes(query))
         .map(([code, name]) => ({name, code}));
-
     showSuggestions(input, matches);
 }
 
@@ -198,11 +200,10 @@ function showSuggestionsCode(input) {
     const matches = Object.entries(suppliers)
         .filter(([code, name]) => code.startsWith(query))
         .map(([code, name]) => ({name, code}));
-
     showSuggestions(input, matches);
 }
 
-// Render suggestion list (click-only)
+// Render suggestion list
 function showSuggestions(input, suggestions) {
     closeSuggestions();
     if (!suggestions.length) return;
