@@ -24,6 +24,7 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 .col-qty-wider { width: 80px; }
 
 .header-info p { font-weight: bold; font-size: 13px; margin: 0; }
+.header-info span[contenteditable] { border-bottom: 1px dotted #000; padding: 0 2px; min-width: 50px; display:inline-block; }
 .signature { margin-top: 28px; width: 100%; display: flex; justify-content: flex-end; font-size: 14px; }
 .signature span { border-top: 1px solid #000; padding-top: 5px; display: inline-block; min-width: 180px; text-align: center; }
 .page-number { text-align: center; font-weight: bold; margin-bottom: 5px; }
@@ -47,6 +48,7 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 <body>
 <div class="container-fluid">
 
+<!-- Action Buttons -->
 <div class="no-print mb-2">
   <button class="btn btn-success" onclick="saveSpecialist()">Save Report</button>
   <button class="btn btn-primary" onclick="generateCombinedReport()">Generate Report</button>
@@ -54,7 +56,6 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
   <button class="btn btn-secondary" onclick="window.print()">Print</button>
   <button class="btn btn-warning" onclick="nextSet()">page +.</button>
   <button class="btn btn-info" onclick="resetNumbers()">Reset page</button>
-  <!-- Supplier Backup & Admin -->
   <button class="btn btn-outline-dark" onclick="backupSuppliers()">Backup Suppliers</button>
   <input type="file" id="restoreFile" style="display:none" onchange="restoreSuppliers(event)">
   <button class="btn btn-outline-secondary" onclick="document.getElementById('restoreFile').click()">Restore Suppliers</button>
@@ -93,6 +94,7 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 <div id="setInfo" class="page-number">Page 1</div>
 </div>
 
+<!-- Report Table -->
 <div class="table-responsive" id="entrySection">
   <table class="table table-bordered table-sm" id="reportTable">
     <thead>
@@ -150,13 +152,10 @@ table input { width: 100%; border: none; text-align: center; font-size: 13px; fo
 </div>
 
 <div id="combinedReports"></div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
+// -------------------- DATE & NUMBERING --------------------
 let currentSet = 0;
 const editableDate = document.getElementById("editableDate");
-const editableStore = document.getElementById("editableStore");
 const now = new Date();
 editableDate.innerText = `${now.getDate()} ${now.toLocaleString('default',{month:'long'})} ${now.getFullYear()}`;
 
@@ -168,8 +167,11 @@ function updateNumbers() {
 }
 function nextSet() { currentSet++; updateNumbers(); }
 function resetNumbers() { currentSet = 0; updateNumbers(); }
-function clearTable() { document.querySelectorAll("#reportTable tbody tr input").forEach(input => input.value = ""); }
+function clearTable() {
+  document.querySelectorAll("#reportTable tbody tr input").forEach(input => input.value = "");
+}
 
+// -------------------- SPECIALIST STORAGE --------------------
 function saveSpecialist() {
   const rows = document.querySelectorAll("#reportTable tbody tr");
   let supplierRows = [];
@@ -180,29 +182,33 @@ function saveSpecialist() {
     supplierRows.push(rowData);
     numbers.push(row.cells[0].innerText);
   });
+
   const hasAny = supplierRows.some(r => r.some(v => v !== ""));
   if (!hasAny) { alert("Enter at least one supplier."); return; }
 
   const specialistName = prompt("Enter Quality Specialist Name:");
   if (!specialistName) return;
   document.getElementById("specialistNamePlaceholder").innerText = specialistName;
+
+  const storeName = document.getElementById("editableStore").innerText.trim();
   const enteredDate = editableDate.innerText.trim();
-  const storeName = editableStore.innerText.trim();
 
   let storedData = JSON.parse(localStorage.getItem("specialistsData")) || [];
   storedData.push({
     name: specialistName,
-    date: enteredDate,
     store: storeName,
+    date: enteredDate,
     suppliers: supplierRows,
     numbers: numbers,
     page: currentSet + 1
   });
   localStorage.setItem("specialistsData", JSON.stringify(storedData));
+
   alert(`Report saved for ${specialistName}`);
   clearTable(); resetNumbers();
 }
 
+// -------------------- GENERATE COMBINED REPORT --------------------
 function generateCombinedReport() {
   const container = document.getElementById("combinedReports");
   container.innerHTML = "";
@@ -216,7 +222,7 @@ function generateCombinedReport() {
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div class="header-info">
           <p>Date: <span>${spec.date}</span></p>
-          <p>Store location: <span>${spec.store}</span></p>
+          <p>Store location: ${spec.store}</p>
           <p>Quality specialist: ${spec.name}</p>
         </div>
         <div class="text-center flex-grow-1">
@@ -238,6 +244,7 @@ function generateCombinedReport() {
     `;
     container.appendChild(pageDiv);
     const tbody = pageDiv.querySelector("tbody");
+
     spec.suppliers.forEach((rowData, idx) => {
       const supplierName = rowData[0];
       if (!supplierName) {
@@ -253,7 +260,141 @@ function generateCombinedReport() {
   alert("Combined report generated! Each report will print on a separate page.");
 }
 
-// You can keep your supplier memory, autocomplete, admin panel, and backup/restore JS unchanged...
+// -------------------- CLEAR SAVED SPECIALISTS --------------------
+function clearAllSpecialists() {
+  if (confirm("Clear ALL saved specialists’ reports?")) {
+    localStorage.removeItem("specialistsData");
+    clearTable();
+    document.getElementById("combinedReports").innerHTML = "";
+    resetNumbers();
+    alert("All Reports cleared.");
+  }
+}
+
+// -------------------- SUPPLIER MEMORY --------------------
+let suppliers = JSON.parse(localStorage.getItem("suppliers")) || {};
+
+function autoFillFromName(input) {
+  const row = input.closest("tr");
+  const name = input.value.trim();
+  const codeInput = row.cells[2].querySelector("input");
+  if (suppliers[name]) codeInput.value = suppliers[name];
+
+  if (name.length > 0) {
+    const matches = Object.keys(suppliers).filter(n => n.toLowerCase().includes(name.toLowerCase()));
+    showSuggestions(input, matches);
+  } else closeSuggestions();
+}
+
+function autoFillFromCode(input) {
+  const row = input.closest("tr");
+  const code = input.value.trim();
+  const nameInput = row.cells[1].querySelector("input");
+  const foundName = Object.keys(suppliers).find(n => suppliers[n] === code);
+  if (foundName) nameInput.value = foundName;
+
+  if (code.length > 0) {
+    const matches = Object.values(suppliers).filter(c => c.toString().startsWith(code.toString()));
+    showSuggestions(input, matches);
+  } else closeSuggestions();
+}
+
+function saveSupplierPair(input) {
+  const row = input.closest("tr");
+  const name = row.cells[1].querySelector("input").value.trim();
+  const code = row.cells[2].querySelector("input").value.trim();
+  if (name && code) {
+    suppliers[name] = code;
+    localStorage.setItem("suppliers", JSON.stringify(suppliers));
+    refreshAdminPanel();
+  }
+}
+
+// -------------------- AUTOCOMPLETE --------------------
+function showSuggestions(input, suggestions) {
+  closeSuggestions();
+  if (!suggestions || !suggestions.length) return;
+  const list = document.createElement("div");
+  list.className = "autocomplete-list";
+  Object.assign(list.style, {position:"absolute", border:"1px solid #ccc", background:"#fff", zIndex:1000, maxHeight:"150px", overflowY:"auto", width: input.offsetWidth + "px"});
+  suggestions.forEach(item=>{
+    const option = document.createElement("div");
+    option.textContent = suppliers[item] !== undefined ? `${item} (${suppliers[item]})` : item;
+    option.style.padding = "4px"; option.style.cursor = "pointer";
+    option.onmousedown = () => {
+      const row = input.closest("tr");
+      if (suppliers[item] !== undefined) {
+        row.cells[1].querySelector("input").value = item;
+        row.cells[2].querySelector("input").value = suppliers[item];
+      } else {
+        const foundName = Object.keys(suppliers).find(n => suppliers[n] === item);
+        if (foundName) {
+          row.cells[1].querySelector("input").value = foundName;
+          row.cells[2].querySelector("input").value = item;
+        } else input.value = item;
+      }
+      saveSupplierPair(input);
+      closeSuggestions();
+    };
+    list.appendChild(option);
+  });
+  input.parentNode.style.position = "relative";
+  input.parentNode.appendChild(list);
+}
+
+function closeSuggestions() { document.querySelectorAll(".autocomplete-list").forEach(el=>el.remove()); }
+document.addEventListener("click", closeSuggestions);
+
+// -------------------- BACKUP & RESTORE --------------------
+function backupSuppliers() {
+  const data = localStorage.getItem("suppliers") || "{}";
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download="suppliers-backup.json"; a.click();
+  URL.revokeObjectURL(url); alert("Suppliers backup downloaded!");
+}
+
+function restoreSuppliers(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (typeof imported==="object" && !Array.isArray(imported)) {
+        localStorage.setItem("suppliers", JSON.stringify(imported));
+        suppliers = imported; refreshAdminPanel(); alert("Suppliers restored!");
+      } else alert("Invalid file!");
+    } catch (err) { alert("Error reading file!"); }
+  };
+  reader.readAsText(file);
+}
+
+// -------------------- ADMIN PANEL --------------------
+function toggleAdminPanel() {
+  const panel=document.getElementById("adminPanel");
+  panel.style.display = (panel.style.display === "none") ? "block" : "none";
+  refreshAdminPanel();
+}
+function refreshAdminPanel() {
+  const tbody=document.getElementById("adminTableBody"); if(!tbody) return;
+  tbody.innerHTML="";
+  Object.keys(suppliers).forEach(name=>{
+    const code=suppliers[name];
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${name}</td><td>${code}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteSupplier('${name.replace(/'/g, "\\'")}')">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function deleteSupplier(name){
+  if(confirm("Delete supplier: "+name+"?")){
+    delete suppliers[name]; localStorage.setItem("suppliers", JSON.stringify(suppliers));
+    refreshAdminPanel();
+  }
+}
+
+// initialize admin panel
+refreshAdminPanel();
 </script>
 </body>
 </html>
