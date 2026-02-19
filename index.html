@@ -94,7 +94,9 @@ table input {
 
 /* ===== Print rules ===== */
 @media print {
-  @page { size: A4 landscape; margin: 5mm; margin-top:42px; }
+  @page { size: A4 landscape; margin: 5mm; margin-top:42px;
+       orientation: landscape;
+         size: A4 landscape !important;}
 
   body {
     margin: 0; padding: 0;
