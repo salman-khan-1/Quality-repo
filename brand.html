@@ -62,7 +62,8 @@
             border-collapse: collapse;
             background-color: #fff;
             page-break-inside: avoid;
-            font-size: 12px;
+            font-size: 11px; /* slightly smaller to fit */
+            table-layout: fixed; /* helps control column widths */
         }
 
         table th,
@@ -80,14 +81,14 @@
 
         table td {
             font-weight: 600 !important;
-            padding: 9.5px 3px !important;
+            padding: 5px 2px !important; /* reduced padding to fit */
         }
 
         table input {
             width: 100%;
             border: none;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             padding: 2px;
             background-color: transparent;
@@ -99,30 +100,30 @@
             background-color: rgba(13, 110, 253, 0.06);
         }
 
-        /* -- Column widths -- */
+        /* -- Column widths (adjusted for landscape) -- */
         .col-no {
-            width: 30px;
+            width: 28px;
         }
         .col-name {
-            width: 160px;
-        }
-        .col-code {
-            width: 105px;
-        }
-        .col-invoice {
             width: 140px;
         }
+        .col-code {
+            width: 85px;
+        }
+        .col-invoice {
+            width: 120px;
+        }
         .col-items {
-            width: 70px;
+            width: 60px;
         }
         .col-qty {
-            width: 50px;
+            width: 45px;
         }
         .col-qty-5 {
-            width: 90px;
+            width: 75px;
         }
         .col-qty-wider {
-            width: 80px;
+            width: 70px;
         }
 
         /* ==============================================================
@@ -130,7 +131,7 @@
             ============================================================== */
         .header-info p {
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
             margin: 0 0 2px 0;
         }
 
@@ -141,27 +142,27 @@
             display: inline-block;
         }
 
-        /* ---- LOGO (background image, removes padding) ---- */
+        /* ---- LOGO (background image, 90px height) ---- */
         .header-logo-wrapper {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             justify-content: center;
-            min-height: 88px;
+            min-height: 100px; /* a bit taller than logo */
             flex-shrink: 0;
         }
 
         .logo-bg {
-            width: 190px;           /* adjust to your logo's aspect */
-            height: 90px;           /* desired visible height */
+            width: 240px;          /* width to match aspect (adjust as needed) */
+            height: 90px;          /* desired height */
             background-image: url('newlogo.png');
-            background-size: cover; /* crops padding, shows the actual logo */
+            background-size: cover; /* crops padding, shows actual logo */
             background-position: center;
             background-repeat: no-repeat;
             margin-right: 15px;
             flex-shrink: 0;
-            border-radius: 4px;     /* optional soft edge */
-            background-color: #f8f9fa; /* fallback while loading */
+            border-radius: 4px;
+            background-color: #f8f9fa;
         }
 
         /* fallback if image fails */
@@ -171,7 +172,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: #1a3a5c;
         }
@@ -181,25 +182,26 @@
 
         /* ---- signature ---- */
         .signature {
-            margin-top: 28px;
+            margin-top: 20px;
             width: 100%;
             display: flex;
             justify-content: flex-end;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .signature span {
             border-top: 1px solid #000;
-            padding-top: 5px;
+            padding-top: 4px;
             display: inline-block;
-            min-width: 180px;
+            min-width: 160px;
             text-align: center;
         }
 
         .page-number {
             text-align: center;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+            font-size: 11px;
         }
 
         .no-print {
@@ -269,18 +271,18 @@
                SPECIALIST / STORE overrides
             ============================================================== */
         .header-info .specialistNamePlaceholder {
-            margin-top: 8px !important;
+            margin-top: 6px !important;
         }
         .header-info #specialistNamePlaceholder {
-            margin-left: 8px !important;
-            font-size: 14px;
+            margin-left: 6px !important;
+            font-size: 13px;
         }
         .header-info .editableStore {
-            margin-top: 8px !important;
+            margin-top: 6px !important;
         }
         .header-info #editableStore {
-            margin-left: 8px !important;
-            font-size: 19px;
+            margin-left: 6px !important;
+            font-size: 18px;
             font-family: "Reem Kufi Fun", sans-serif;
             font-optical-sizing: auto;
             font-weight: bold;
@@ -293,9 +295,8 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 5mm;
-                margin-top: 42px;
-                orientation: landscape;
+                margin: 4mm; /* smaller margins to fit content */
+                margin-top: 30px;
             }
 
             body {
@@ -345,25 +346,43 @@
                 background: #ffffff !important;
             }
 
-            #combinedReports>div:last-child .page-break {
-                display: none !important;
-            }
-
-            /* --- logo prints perfectly (same background style) --- */
+            /* --- logo prints with 90px height --- */
             .logo-bg {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                width: 160px !important;
-                height: 65px !important;
+                width: 240px !important;
+                height: 90px !important;
                 margin-right: 15px !important;
                 background-size: cover !important;
             }
 
             #combinedReports .logo-bg {
-                width: 160px !important;
-                height: 65px !important;
+                width: 240px !important;
+                height: 90px !important;
                 margin-right: 15px !important;
                 background-size: cover !important;
+            }
+
+            /* each report should be on its own page, no extra blank */
+            #combinedReports > div {
+                page-break-after: always;
+            }
+            #combinedReports > div:last-child {
+                page-break-after: avoid; /* no trailing blank page */
+            }
+
+            /* reduce table font and padding further for print */
+            table {
+                font-size: 10px !important;
+            }
+            table td {
+                padding: 4px 2px !important;
+            }
+            .header-info p {
+                font-size: 11px !important;
+            }
+            .page-number {
+                font-size: 10px !important;
             }
         }
 
@@ -372,23 +391,23 @@
             ============================================================== */
         @media screen and (max-width: 768px) {
             .logo-bg {
-                width: 120px;
-                height: 50px;
+                width: 180px;
+                height: 68px;
                 margin-right: 10px;
             }
             .header-logo-wrapper {
-                min-height: 55px;
+                min-height: 76px;
             }
         }
 
         @media screen and (max-width: 480px) {
             .logo-bg {
-                width: 90px;
-                height: 38px;
+                width: 140px;
+                height: 52px;
                 margin-right: 6px;
             }
             .header-logo-wrapper {
-                min-height: 45px;
+                min-height: 60px;
             }
         }
 
@@ -396,8 +415,8 @@
                ensure generated reports also use the same logo style
             ============================================================== */
         #combinedReports .logo-bg {
-            width: 160px;
-            height: 65px;
+            width: 240px;
+            height: 90px;
             background-image: url('newlogo.png');
             background-size: cover;
             background-position: center;
@@ -409,16 +428,16 @@
 
         @media screen and (max-width: 768px) {
             #combinedReports .logo-bg {
-                width: 120px;
-                height: 50px;
+                width: 180px;
+                height: 68px;
                 margin-right: 10px;
             }
         }
 
         @media screen and (max-width: 480px) {
             #combinedReports .logo-bg {
-                width: 90px;
-                height: 38px;
+                width: 140px;
+                height: 52px;
                 margin-right: 6px;
             }
         }
@@ -535,12 +554,12 @@
 
                 <!-- Center: title -->
                 <div class="text-center flex-grow-1">
-                    <h6 class="fw-bold text-decoration-underline" style="font-size:13px; margin-top:10px;">
+                    <h6 class="fw-bold text-decoration-underline" style="font-size:13px; margin-top:6px;">
                         Daily report of checking goods received from suppliers
                     </h6>
                 </div>
 
-                <!-- Right: LOGO (background, removes padding) -->
+                <!-- Right: LOGO (90px height) -->
                 <div class="text-end header-info header-logo-wrapper">
                     <div class="logo-bg" id="mainLogo"></div>
                 </div>
@@ -856,8 +875,6 @@
             const theadHTML = document.querySelector('#reportTable thead').innerHTML;
 
             specialistsData.forEach((spec, sIndex) => {
-                if (sIndex > 0) container.innerHTML += '<div class="page-break"></div>';
-
                 const pageDiv = document.createElement('div');
                 pageDiv.innerHTML = `
               <div class="d-flex justify-content-between align-items-start mb-2">
@@ -867,7 +884,7 @@
                   <p class="specialistNamePlaceholder">Quality specialist: <span>${spec.name}</span></p>
                 </div>
                 <div class="text-center flex-grow-1">
-                  <h6 class="fw-bold text-decoration-underline" style="font-size:13px; margin-top:10px;">
+                  <h6 class="fw-bold text-decoration-underline" style="font-size:12px; margin-top:6px;">
                     Daily report of checking goods received from suppliers
                   </h6>
                 </div>
@@ -982,12 +999,7 @@
             this.classList.add('error');
         });
 
-        // Also handle in generated reports – we add a small script to add error class if needed
-        // But we can't easily catch errors for dynamically added elements, so we'll use a MutationObserver
-        // or we can just rely on the CSS fallback (we have a background-color and pseudo-element fallback).
-        // However, the background-image may fail silently, so we can add a fallback via CSS:
-        // We already have .logo-bg.error fallback. We'll just add a class if the image fails to load.
-        // For dynamic elements, we can set a global error handler.
+        // Global error listener for .logo-bg elements
         document.addEventListener('error', function(e) {
             if (e.target.classList && e.target.classList.contains('logo-bg')) {
                 e.target.classList.add('error');
