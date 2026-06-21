@@ -62,8 +62,9 @@
             border-collapse: collapse;
             background-color: #fff;
             page-break-inside: avoid;
-            font-size: 11px; /* slightly smaller to fit */
-            table-layout: fixed; /* helps control column widths */
+            font-size: 11px;
+            table-layout: fixed;
+            margin-top: 2px;
         }
 
         table th,
@@ -81,7 +82,7 @@
 
         table td {
             font-weight: 600 !important;
-            padding: 5px 2px !important; /* reduced padding to fit */
+            padding: 5px 2px !important;
         }
 
         table input {
@@ -142,33 +143,32 @@
             display: inline-block;
         }
 
-        /* ---- LOGO (background image, 90px height) ---- */
+        /* ---- LOGO (transparent background, contain, 112px height) ---- */
         .header-logo-wrapper {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             justify-content: center;
-            min-height: 100px; /* a bit taller than logo */
+            min-height: 100px;
             flex-shrink: 0;
         }
 
         .logo-bg {
-            width: 240px;          /* width to match aspect (adjust as needed) */
-            height: 90px;          /* desired height */
+            width: 280px;
+            height: 112px;
             background-image: url('newlogo.png');
-            background-size: cover; /* crops padding, shows actual logo */
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             margin-right: 15px;
             flex-shrink: 0;
-            border-radius: 4px;
-            background-color: #f8f9fa;
+            background-color: transparent;
         }
 
         /* fallback if image fails */
         .logo-bg.error {
             background-image: none !important;
-            background-color: #f0f0f0;
+            background-color: #f0f0f0 !important;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -182,11 +182,12 @@
 
         /* ---- signature ---- */
         .signature {
-            margin-top: 20px;
+            margin-top: 12px;
             width: 100%;
             display: flex;
             justify-content: flex-end;
             font-size: 13px;
+            page-break-inside: avoid;
         }
 
         .signature span {
@@ -200,8 +201,9 @@
         .page-number {
             text-align: center;
             font-weight: bold;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             font-size: 11px;
+            margin-top: -41px; /* shifted up as requested */
         }
 
         .no-print {
@@ -295,8 +297,8 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 4mm; /* smaller margins to fit content */
-                margin-top: 30px;
+                margin: 4mm 4mm 4mm 4mm;
+                margin-top: 20px;
             }
 
             body {
@@ -341,48 +343,64 @@
                 display: none !important;
             }
 
-            * {
-                background-color: #ffffff !important;
-                background: #ffffff !important;
-            }
-
-            /* --- logo prints with 90px height --- */
+            /* --- logo prints with transparent bg, contain, 112px height --- */
             .logo-bg {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                width: 240px !important;
-                height: 90px !important;
+                width: 280px !important;
+                height: 112px !important;
                 margin-right: 15px !important;
-                background-size: cover !important;
+                background-size: contain !important;
+                background-color: transparent !important;
             }
 
             #combinedReports .logo-bg {
-                width: 240px !important;
-                height: 90px !important;
+                width: 280px !important;
+                height: 112px !important;
                 margin-right: 15px !important;
-                background-size: cover !important;
+                background-size: contain !important;
+                background-color: transparent !important;
             }
 
-            /* each report should be on its own page, no extra blank */
+            /* each report on its own page, no extra blank */
             #combinedReports > div {
                 page-break-after: always;
+                padding-top: 0;
+                margin-top: 0;
             }
             #combinedReports > div:last-child {
-                page-break-after: avoid; /* no trailing blank page */
+                page-break-after: avoid;
             }
 
-            /* reduce table font and padding further for print */
+            /* reduce spacing to fit signature */
             table {
                 font-size: 10px !important;
+                margin-top: 0 !important;
             }
             table td {
                 padding: 4px 2px !important;
             }
             .header-info p {
                 font-size: 11px !important;
+                margin: 0 0 1px 0 !important;
             }
             .page-number {
                 font-size: 10px !important;
+                margin-top: -41px !important;
+                margin-bottom: 0 !important;
+            }
+            .signature {
+                margin-top: 8px !important;
+                page-break-inside: avoid;
+            }
+            .header-info .editableStore {
+                margin-top: 4px !important;
+            }
+            .header-info .specialistNamePlaceholder {
+                margin-top: 4px !important;
+            }
+            .header-logo-wrapper {
+                min-height: 100px !important;
             }
         }
 
@@ -391,23 +409,23 @@
             ============================================================== */
         @media screen and (max-width: 768px) {
             .logo-bg {
-                width: 180px;
-                height: 68px;
+                width: 200px;
+                height: 80px;
                 margin-right: 10px;
             }
             .header-logo-wrapper {
-                min-height: 76px;
+                min-height: 90px;
             }
         }
 
         @media screen and (max-width: 480px) {
             .logo-bg {
-                width: 140px;
-                height: 52px;
+                width: 150px;
+                height: 60px;
                 margin-right: 6px;
             }
             .header-logo-wrapper {
-                min-height: 60px;
+                min-height: 70px;
             }
         }
 
@@ -415,29 +433,29 @@
                ensure generated reports also use the same logo style
             ============================================================== */
         #combinedReports .logo-bg {
-            width: 240px;
-            height: 90px;
+            width: 280px;
+            height: 112px;
             background-image: url('newlogo.png');
-            background-size: cover;
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             margin-right: 15px;
             flex-shrink: 0;
-            background-color: #f8f9fa;
+            background-color: transparent;
         }
 
         @media screen and (max-width: 768px) {
             #combinedReports .logo-bg {
-                width: 180px;
-                height: 68px;
+                width: 200px;
+                height: 80px;
                 margin-right: 10px;
             }
         }
 
         @media screen and (max-width: 480px) {
             #combinedReports .logo-bg {
-                width: 140px;
-                height: 52px;
+                width: 150px;
+                height: 60px;
                 margin-right: 6px;
             }
         }
@@ -559,7 +577,7 @@
                     </h6>
                 </div>
 
-                <!-- Right: LOGO (90px height) -->
+                <!-- Right: LOGO (112px height) -->
                 <div class="text-end header-info header-logo-wrapper">
                     <div class="logo-bg" id="mainLogo"></div>
                 </div>
@@ -877,27 +895,27 @@
             specialistsData.forEach((spec, sIndex) => {
                 const pageDiv = document.createElement('div');
                 pageDiv.innerHTML = `
-              <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="d-flex justify-content-between align-items-start mb-2" style="margin-bottom:2px !important;">
                 <div class="header-info">
-                  <p>Date: <span>${spec.date}</span></p>
-                  <p class="editableStore">Store location: <span>${spec.store}</span></p>
-                  <p class="specialistNamePlaceholder">Quality specialist: <span>${spec.name}</span></p>
+                  <p style="margin:0 0 1px 0;">Date: <span>${spec.date}</span></p>
+                  <p style="margin:0 0 1px 0;">Store location: <span>${spec.store}</span></p>
+                  <p style="margin:0;">Quality specialist: <span>${spec.name}</span></p>
                 </div>
                 <div class="text-center flex-grow-1">
-                  <h6 class="fw-bold text-decoration-underline" style="font-size:12px; margin-top:6px;">
+                  <h6 class="fw-bold text-decoration-underline" style="font-size:12px; margin-top:4px; margin-bottom:2px;">
                     Daily report of checking goods received from suppliers
                   </h6>
                 </div>
-                <div class="text-end header-info header-logo-wrapper">
+                <div class="text-end header-info header-logo-wrapper" style="min-height:100px;">
                   <div class="logo-bg"></div>
                 </div>
               </div>
-              <div class="page-number">Page ${spec.page}</div>
-              <table class="table table-bordered table-sm">
+              <div class="page-number" style="margin-top:-41px; margin-bottom:0;">Page ${spec.page}</div>
+              <table class="table table-bordered table-sm" style="margin-top:0;">
                 <thead>${theadHTML}</thead>
                 <tbody></tbody>
               </table>
-              <div class="signature"><span>Signature</span></div>
+              <div class="signature" style="margin-top:8px;"><span>Signature</span></div>
             `;
 
                 container.appendChild(pageDiv);
