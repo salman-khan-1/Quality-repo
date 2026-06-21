@@ -64,7 +64,7 @@
             page-break-inside: avoid;
             font-size: 11px;
             table-layout: fixed;
-            margin-top: 2px; /* minimal top margin */
+            margin-top: 2px;
         }
 
         table th,
@@ -143,7 +143,7 @@
             display: inline-block;
         }
 
-        /* ---- LOGO (background image, 90px height) ---- */
+        /* ---- LOGO (transparent background, contain) ---- */
         .header-logo-wrapper {
             display: flex;
             flex-direction: column;
@@ -157,18 +157,18 @@
             width: 240px;
             height: 90px;
             background-image: url('newlogo.png');
-            background-size: cover;
+            background-size: contain;   /* shows the whole logo, no cropping */
             background-position: center;
             background-repeat: no-repeat;
             margin-right: 15px;
             flex-shrink: 0;
-            border-radius: 4px;
-            background-color: #f8f9fa;
+            background-color: transparent; /* transparent background */
         }
 
+        /* fallback if image fails */
         .logo-bg.error {
             background-image: none !important;
-            background-color: #f0f0f0;
+            background-color: #f0f0f0 !important;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -182,12 +182,12 @@
 
         /* ---- signature ---- */
         .signature {
-            margin-top: 12px; /* reduced from 20px */
+            margin-top: 12px;
             width: 100%;
             display: flex;
             justify-content: flex-end;
             font-size: 13px;
-            page-break-inside: avoid; /* keep with table */
+            page-break-inside: avoid;
         }
 
         .signature span {
@@ -201,9 +201,9 @@
         .page-number {
             text-align: center;
             font-weight: bold;
-            margin-bottom: 2px; /* reduced */
+            margin-bottom: 2px;
             font-size: 11px;
-            margin-top: -10px; /* shift up */
+            margin-top: -10px;
         }
 
         .no-print {
@@ -298,7 +298,7 @@
             @page {
                 size: A4 landscape;
                 margin: 4mm 4mm 4mm 4mm;
-                margin-top: 20px; /* reduced top margin */
+                margin-top: 20px;
             }
 
             body {
@@ -343,26 +343,23 @@
                 display: none !important;
             }
 
-            * {
-                background-color: #ffffff !important;
-                background: #ffffff !important;
-            }
-
-            /* --- logo prints with 90px height --- */
+            /* --- logo prints with transparent background & contain --- */
             .logo-bg {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 width: 240px !important;
                 height: 90px !important;
                 margin-right: 15px !important;
-                background-size: cover !important;
+                background-size: contain !important;
+                background-color: transparent !important;
             }
 
             #combinedReports .logo-bg {
                 width: 240px !important;
                 height: 90px !important;
                 margin-right: 15px !important;
-                background-size: cover !important;
+                background-size: contain !important;
+                background-color: transparent !important;
             }
 
             /* each report on its own page, no extra blank */
@@ -389,21 +386,19 @@
             }
             .page-number {
                 font-size: 10px !important;
-                margin-top: -15px !important; /* shift up */
+                margin-top: -15px !important;
                 margin-bottom: 0 !important;
             }
             .signature {
                 margin-top: 8px !important;
                 page-break-inside: avoid;
             }
-            /* reduce header title margin */
             .header-info .editableStore {
                 margin-top: 4px !important;
             }
             .header-info .specialistNamePlaceholder {
                 margin-top: 4px !important;
             }
-            /* reduce logo wrapper height */
             .header-logo-wrapper {
                 min-height: 95px !important;
             }
@@ -441,12 +436,12 @@
             width: 240px;
             height: 90px;
             background-image: url('newlogo.png');
-            background-size: cover;
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             margin-right: 15px;
             flex-shrink: 0;
-            background-color: #f8f9fa;
+            background-color: transparent;
         }
 
         @media screen and (max-width: 768px) {
@@ -582,7 +577,7 @@
                     </h6>
                 </div>
 
-                <!-- Right: LOGO (90px height) -->
+                <!-- Right: LOGO (transparent, contain) -->
                 <div class="text-end header-info header-logo-wrapper">
                     <div class="logo-bg" id="mainLogo"></div>
                 </div>
