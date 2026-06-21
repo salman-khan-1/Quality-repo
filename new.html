@@ -3,25 +3,35 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1024">
-    <title>Daily Report - Checking Goods</title>
+    <title>Daily Report – Checking Goods</title>
 
-    <!-- Bootstrap CSS + Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap 5 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <!-- Google Font (Reem Kufi Fun) -->
+    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi+Fun:wght@400..700&display=swap" rel="stylesheet" />
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Reem+Kufi+Fun:wght@400..700&display=swap');
-    </style>
-    <style>
-        /* ===== General & Background ===== */
+        /* ==============================================================
+               GLOBAL RESET & BASE
+            ============================================================== */
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-size: 12px;
             margin: 0;
             padding: 10px;
             background: linear-gradient(135deg, #dce9f9 0%, #f0f4fa 100%);
             min-height: 100vh;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
 
-        /* ===== Glassmorphism Toolbar ===== */
+        /* ==============================================================
+               GLASSMORPHISM TOOLBAR
+            ============================================================== */
         .glass-card {
             background: rgba(255, 255, 255, 0.35);
             backdrop-filter: blur(10px);
@@ -37,12 +47,15 @@
             font-weight: 600;
             transition: all .18s ease;
         }
+
         .glass-card .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
-        /* ===== Table ===== */
+        /* ==============================================================
+               TABLE
+            ============================================================== */
         table {
             border: 1px solid #000;
             width: 100%;
@@ -51,6 +64,7 @@
             page-break-inside: avoid;
             font-size: 12px;
         }
+
         table th,
         table td {
             border: 1px solid #000 !important;
@@ -58,14 +72,17 @@
             vertical-align: middle;
             word-break: break-word;
         }
+
         table th {
             background-color: #a0a0a0 !important;
             font-weight: bold;
         }
+
         table td {
             font-weight: 600 !important;
             padding: 9.5px 3px !important;
         }
+
         table input {
             width: 100%;
             border: none;
@@ -76,7 +93,13 @@
             background-color: transparent;
         }
 
-        /* ===== Column widths ===== */
+        table input:focus {
+            outline: 2px solid #0d6efd;
+            border-radius: 2px;
+            background-color: rgba(13, 110, 253, 0.06);
+        }
+
+        /* -- Column widths -- */
         .col-no {
             width: 30px;
         }
@@ -102,12 +125,15 @@
             width: 80px;
         }
 
-        /* ===== Header & signature ===== */
+        /* ==============================================================
+               HEADER & SIGNATURE
+            ============================================================== */
         .header-info p {
             font-weight: bold;
             font-size: 13px;
-            margin: 0;
+            margin: 0 0 2px 0;
         }
+
         .header-info span[contenteditable] {
             border-bottom: 1px dotted #000;
             padding: 0 2px;
@@ -115,16 +141,39 @@
             display: inline-block;
         }
 
-        /* ---- Header logo - EVEN BIGGER + RIGHT MARGIN ---- */
-        .header-logo {
-            height: 110px;
-            width: auto;
-            max-width: 320px;
-            display: block;
-            margin-left: auto;
-            margin-right: 20px; /* added right margin */
+        /* ---- LOGO (perfect sizing) ---- */
+        .header-logo-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            min-height: 120px;
+            flex-shrink: 0;
         }
 
+        .header-logo-wrapper img {
+            display: block;
+            height: 120px;
+            width: auto;
+            max-width: 340px;
+            margin-right: 20px;
+            object-fit: contain;
+            /* ensures the whole logo stays in bounds */
+            image-rendering: auto;
+        }
+
+        /* ---- fallback: if logo fails to load, show a graceful placeholder ---- */
+        .header-logo-wrapper img::before {
+            content: "🖼️";
+            display: block;
+            font-size: 60px;
+            text-align: center;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+
+        /* ---- signature ---- */
         .signature {
             margin-top: 28px;
             width: 100%;
@@ -132,6 +181,7 @@
             justify-content: flex-end;
             font-size: 14px;
         }
+
         .signature span {
             border-top: 1px solid #000;
             padding-top: 5px;
@@ -139,19 +189,24 @@
             min-width: 180px;
             text-align: center;
         }
+
         .page-number {
             text-align: center;
             font-weight: bold;
             margin-bottom: 5px;
         }
+
         .no-print {
             margin: 10px 0;
         }
+
         .page-break {
             page-break-before: always;
         }
 
-        /* autocomplete list */
+        /* ==============================================================
+               AUTOCOMPLETE
+            ============================================================== */
         .autocomplete-list {
             position: absolute;
             border: 1px solid #ccc;
@@ -159,11 +214,27 @@
             z-index: 1000;
             max-height: 150px;
             overflow-y: auto;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            min-width: 160px;
         }
 
-        /* Admin panel glass look */
+        .autocomplete-list div {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.12s;
+        }
+
+        .autocomplete-list div:hover {
+            background: #e9ecef;
+        }
+
+        /* ==============================================================
+               ADMIN PANEL (glass)
+            ============================================================== */
         #adminPanel {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.55);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-radius: 10px;
@@ -172,65 +243,9 @@
             padding: 12px;
         }
 
-        /* ===== Print rules ===== */
-        @media print {
-            @page {
-                size: A4 landscape;
-                margin: 5mm;
-                margin-top: 42px;
-                orientation: landscape;
-                size: A4 landscape !important;
-            }
-
-            body {
-                margin: 0;
-                padding: 0;
-                background-color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .no-print,
-            .glass-card {
-                display: none !important;
-            }
-            #entrySection {
-                display: none !important;
-            }
-            table,
-            th,
-            td {
-                background: #fff !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            tr {
-                page-break-inside: avoid;
-            }
-            table input {
-                display: none;
-            }
-            .with-dash td:empty::after {
-                content: "-";
-                display: block;
-            }
-            .flag-top-right {
-                display: none;
-            }
-            * {
-                background-color: #ffffff !important;
-                background: #ffffff !important;
-            }
-            #combinedReports>div:last-child .page-break {
-                display: none !important;
-            }
-            /* logo prints fine */
-            .header-logo {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-        }
-
-        /* ===== Pakistan flag top-right (cycling) ===== */
+        /* ==============================================================
+               FLAG (top-right corner)
+            ============================================================== */
         .flag-top-right {
             position: fixed;
             top: -3px;
@@ -240,8 +255,13 @@
             z-index: 9999;
             margin-top: -15px;
             pointer-events: none;
+            transition: opacity 1.5s ease-in-out;
+            opacity: 1;
         }
 
+        /* ==============================================================
+               SPECIALIST / STORE overrides
+            ============================================================== */
         .header-info .specialistNamePlaceholder {
             margin-top: 8px !important;
         }
@@ -258,104 +278,253 @@
             font-family: "Reem Kufi Fun", sans-serif;
             font-optical-sizing: auto;
             font-weight: bold;
-            font-style: nl;
+            font-style: normal;
         }
 
-        /* fade transition for the cycling flag */
+        /* ==============================================================
+               PRINT STYLES
+            ============================================================== */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 5mm;
+                margin-top: 42px;
+                orientation: landscape;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .no-print,
+            .glass-card {
+                display: none !important;
+            }
+
+            #entrySection {
+                display: none !important;
+            }
+
+            table,
+            th,
+            td {
+                background: #fff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            tr {
+                page-break-inside: avoid;
+            }
+
+            table input {
+                display: none;
+            }
+
+            .with-dash td:empty::after {
+                content: "-";
+                display: block;
+            }
+
+            .flag-top-right {
+                display: none !important;
+            }
+
+            * {
+                background-color: #ffffff !important;
+                background: #ffffff !important;
+            }
+
+            #combinedReports>div:last-child .page-break {
+                display: none !important;
+            }
+
+            /* --- logo prints perfectly --- */
+            .header-logo-wrapper img {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                height: 120px !important;
+                max-width: 340px !important;
+                margin-right: 20px !important;
+            }
+
+            /* ensure generated reports also use the same logo sizing */
+            #combinedReports .header-logo-wrapper img {
+                height: 120px !important;
+                max-width: 340px !important;
+                margin-right: 20px !important;
+            }
+        }
+
+        /* ==============================================================
+               RESPONSIVE LOGO (smaller screens)
+            ============================================================== */
+        @media screen and (max-width: 768px) {
+            .header-logo-wrapper img {
+                height: 80px;
+                max-width: 200px;
+                margin-right: 10px;
+            }
+
+            .header-logo-wrapper {
+                min-height: 80px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .header-logo-wrapper img {
+                height: 60px;
+                max-width: 140px;
+                margin-right: 6px;
+            }
+
+            .header-logo-wrapper {
+                min-height: 60px;
+            }
+        }
+
+        /* ==============================================================
+               UTILITY: smooth transitions for the flag
+            ============================================================== */
         .flag-top-right {
             transition: opacity 1.5s ease-in-out;
         }
 
-        /* header right column — holds the logo */
-        .header-logo-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            justify-content: center;
-            min-height: 110px;
-        }
-        .header-logo-wrapper img {
-            height: 110px;
+        /* ==============================================================
+               ensure generated reports also use the big logo + margin
+            ============================================================== */
+        #combinedReports .header-logo-wrapper img {
+            height: 120px;
             width: auto;
-            max-width: 320px;
+            max-width: 340px;
             display: block;
-            margin-right: 20px; /* added right margin */
+            margin-right: 20px;
+            object-fit: contain;
         }
 
-        /* ensure generated reports also use big logo + margin */
-        #combinedReports .header-logo-wrapper img {
-            height: 110px;
-            width: auto;
-            max-width: 320px;
-            margin-right: 20px;
+        @media screen and (max-width: 768px) {
+            #combinedReports .header-logo-wrapper img {
+                height: 80px;
+                max-width: 200px;
+                margin-right: 10px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            #combinedReports .header-logo-wrapper img {
+                height: 60px;
+                max-width: 140px;
+                margin-right: 6px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-    <!-- ===== Cycling flag (top-right corner) ===== -->
+    <!-- ============================================================
+    FLAG (top-right, cycles between two images)
+    ============================================================ -->
     <div class="no-print">
         <img id="flag" src="wao-removebg-preview.png" alt="Flag" class="flag-top-right">
     </div>
-    <script>
-        const flag = document.getElementById("flag");
-        const flags = [
-            "wao-removebg-preview.png", // Pakistan flag
-            "logo-removebg-preview.png" // Makhazen logo
-        ];
-        let current = 0;
 
-        function switchFlag() {
-            flag.style.opacity = 0;
-            setTimeout(() => {
-                current = (current + 1) % flags.length;
-                flag.src = flags[current];
-                flag.style.opacity = 1;
-            }, 2000);
-        }
-        setInterval(switchFlag, 1 * 60 * 1000);
+    <script>
+        (function() {
+            const flag = document.getElementById('flag');
+            const flags = [
+                'wao-removebg-preview.png',
+                'logo-removebg-preview.png'
+            ];
+            let current = 0;
+
+            function switchFlag() {
+                flag.style.opacity = 0;
+                setTimeout(() => {
+                    current = (current + 1) % flags.length;
+                    flag.src = flags[current];
+                    flag.style.opacity = 1;
+                }, 2000);
+            }
+            setInterval(switchFlag, 1 * 60 * 1000);
+        })();
     </script>
 
+    <!-- ============================================================
+    MAIN CONTAINER
+    ============================================================ -->
     <div class="container-fluid">
 
-        <!-- ===== Glass Toolbar ===== -->
+        <!-- ===== GLASS TOOLBAR ===== -->
         <div class="glass-card no-print mb-3 d-flex flex-wrap align-items-center gap-2 justify-content-start">
+
             <div class="btn-group">
-                <button class="btn btn-success" onclick="saveSpecialist()"><i class="bi bi-save"></i> Save</button>
-                <button class="btn btn-primary" onclick="generateCombinedReport()"><i class="bi bi-file-earmark-richtext"></i> Generate</button>
-                <button class="btn btn-danger" onclick="clearAllSpecialists()"><i class="bi bi-trash"></i> Clear All</button>
+                <button class="btn btn-success" onclick="saveSpecialist()">
+                    <i class="bi bi-save"></i> Save
+                </button>
+                <button class="btn btn-primary" onclick="generateCombinedReport()">
+                    <i class="bi bi-file-earmark-richtext"></i> Generate
+                </button>
+                <button class="btn btn-danger" onclick="clearAllSpecialists()">
+                    <i class="bi bi-trash"></i> Clear All
+                </button>
             </div>
+
             <div class="btn-group">
-                <button class="btn btn-secondary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+                <button class="btn btn-secondary" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print
+                </button>
             </div>
+
             <div class="btn-group">
-                <button class="btn btn-warning" onclick="nextSet()"><i class="bi bi-plus-square"></i> Page +</button>
-                <button class="btn btn-info" onclick="resetNumbers()"><i class="bi bi-arrow-repeat"></i> Reset</button>
+                <button class="btn btn-warning" onclick="nextSet()">
+                    <i class="bi bi-plus-square"></i> Page +
+                </button>
+                <button class="btn btn-info" onclick="resetNumbers()">
+                    <i class="bi bi-arrow-repeat"></i> Reset
+                </button>
             </div>
+
             <div class="btn-group">
-                <button class="btn btn-outline-dark" onclick="backupSuppliers()"><i class="bi bi-cloud-download"></i> Backup</button>
-                <input type="file" id="restoreFile" style="display:none" onchange="restoreSuppliers(event)">
-                <button class="btn btn-outline-secondary" onclick="document.getElementById('restoreFile').click()"><i class="bi bi-cloud-upload"></i> Restore</button>
+                <button class="btn btn-outline-dark" onclick="backupSuppliers()">
+                    <i class="bi bi-cloud-download"></i> Backup
+                </button>
+                <input type="file" id="restoreFile" style="display:none" onchange="restoreSuppliers(event)" accept=".json" />
+                <button class="btn btn-outline-secondary" onclick="document.getElementById('restoreFile').click()">
+                    <i class="bi bi-cloud-upload"></i> Restore
+                </button>
             </div>
+
             <div class="btn-group">
-                <button class="btn btn-outline-info" onclick="toggleAdminPanel()"><i class="bi bi-people"></i> Manage Suppliers</button>
+                <button class="btn btn-outline-info" onclick="toggleAdminPanel()">
+                    <i class="bi bi-people"></i> Manage Suppliers
+                </button>
             </div>
         </div>
 
-        <!-- ===== Admin Panel ===== -->
+        <!-- ===== ADMIN PANEL ===== -->
         <div class="no-print">
             <div id="adminPanel" style="display:none; margin-top:10px;">
-                <h6 class="fw-bold mb-2">Saved Suppliers</h6>
-                <table class="table table-sm table-bordered mb-0">
-                    <thead><tr><th>Name</th><th>Code</th><th>Actions</th></tr></thead>
+                <h6 class="fw-bold mb-2">📋 Saved Suppliers</h6>
+                <table class="table table-sm table-bordered mb-0" style="border:1px solid #000 !important;">
+                    <thead>
+                        <tr><th>Name</th><th>Code</th><th>Actions</th></tr>
+                    </thead>
                     <tbody id="adminTableBody"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- ===== HEADER ===== -->
+        <!-- ============================================================
+        HEADER
+        ============================================================ -->
         <div class="no-print">
             <div class="d-flex justify-content-between align-items-start mb-2">
+
                 <!-- Left: date, store, specialist -->
                 <div class="header-info">
                     <p>Date : <span id="editableDate" contenteditable="true"></span></p>
@@ -370,16 +539,18 @@
                     </h6>
                 </div>
 
-                <!-- Right: BIG LOGO with margin -->
+                <!-- Right: LOGO (perfect sizing) -->
                 <div class="text-end header-info header-logo-wrapper">
-                    <img src="newlogo.png" alt="Makhazen Alenayah" class="header-logo">
+                    <img src="newlogo.png" alt="Makhazen Alenayah" id="mainLogo" />
                 </div>
             </div>
 
             <div id="setInfo" class="page-number">Page 1</div>
         </div>
 
-        <!-- ===== Report Table (editable) ===== -->
+        <!-- ============================================================
+        EDITABLE TABLE
+        ============================================================ -->
         <div class="table-responsive" id="entrySection">
             <table class="table table-bordered table-sm" id="reportTable">
                 <thead>
@@ -436,328 +607,385 @@
             </table>
         </div>
 
+        <!-- ===== GENERATED REPORTS CONTAINER ===== -->
         <div id="combinedReports"></div>
 
-        <!-- ============================================================ -->
-        <!-- ===== JAVASCRIPT ===== -->
-        <script>
-            /* -------------------- Init & Pagination -------------------- */
-            let currentSet = 0;
-            const editableDate = document.getElementById("editableDate");
-            const now = new Date();
-            editableDate.innerText = `${now.getDate()} ${now.toLocaleString('default',{month:'long'})} ${now.getFullYear()}`;
+    </div><!-- /container-fluid -->
 
-            function updateNumbers() {
-                document.querySelectorAll("#reportTable tbody tr").forEach((row, index) => {
-                    row.cells[0].innerText = index + 1 + (currentSet * 12);
-                });
-                document.getElementById("setInfo").innerText = `Page ${currentSet + 1}`;
-            }
 
-            function nextSet() { currentSet++;
-                updateNumbers(); }
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        /* ==============================================================
+               INIT & PAGINATION
+            ============================================================== */
+        let currentSet = 0;
 
-            function resetNumbers() { currentSet = 0;
-                updateNumbers(); }
+        const editableDate = document.getElementById('editableDate');
+        const now = new Date();
+        editableDate.innerText =
+            `${now.getDate()} ${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
 
-            function clearTable() { document.querySelectorAll("#reportTable tbody tr input").forEach(i => i.value = ""); }
+        function updateNumbers() {
+            const rows = document.querySelectorAll('#reportTable tbody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].innerText = index + 1 + (currentSet * 12);
+            });
+            document.getElementById('setInfo').innerText = `Page ${currentSet + 1}`;
+        }
 
-            /* -------------------- SUPPLIERS -------------------- */
-            let suppliers = JSON.parse(localStorage.getItem("suppliers")) || {};
+        function nextSet() { currentSet++;
+            updateNumbers(); }
 
-            function saveSupplierPair(input) {
-                const row = input.closest("tr");
-                const name = row.cells[1].querySelector("input").value.trim();
-                const code = row.cells[2].querySelector("input").value.trim();
-                if (name && code) {
-                    suppliers[code] = name;
-                    localStorage.setItem("suppliers", JSON.stringify(suppliers));
-                    refreshAdminPanel();
-                }
-            }
+        function resetNumbers() { currentSet = 0;
+            updateNumbers(); }
 
-            function autoFillFromNameOnBlur(input) {
-                const row = input.closest("tr");
-                const name = input.value.trim();
-                const codeInput = row.cells[2].querySelector("input");
-                const found = Object.entries(suppliers).find(([c, n]) => n.toLowerCase() === name.toLowerCase());
-                if (found) codeInput.value = found[0];
-                saveSupplierPair(input);
-            }
+        function clearTable() {
+            document.querySelectorAll('#reportTable tbody tr input').forEach(i => i.value = '');
+        }
 
-            function autoFillFromCodeOnBlur(input) {
-                const row = input.closest("tr");
-                const code = input.value.trim();
-                const nameInput = row.cells[1].querySelector("input");
-                if (suppliers[code]) nameInput.value = suppliers[code];
-                saveSupplierPair(input);
-            }
+        /* ==============================================================
+           SUPPLIERS (localStorage)
+        ============================================================== */
+        let suppliers = JSON.parse(localStorage.getItem('suppliers')) || {};
 
-            /* -------------------- AUTOCOMPLETE -------------------- */
-            function showSuggestions(input, type) {
-                closeSuggestions();
-                const value = input.value.trim().toLowerCase();
-                if (!value) return;
-
-                let matches = [];
-                if (type === 'name') {
-                    matches = Object.values(suppliers).filter(n => n.toLowerCase().includes(value));
-                } else if (type === 'code') {
-                    matches = Object.keys(suppliers).filter(c => c.startsWith(value));
-                }
-                if (!matches.length) return;
-
-                const list = document.createElement("div");
-                list.className = "autocomplete-list";
-                Object.assign(list.style, {
-                    position: "absolute",
-                    border: "1px solid #ccc",
-                    background: "#fff",
-                    zIndex: 1000,
-                    maxHeight: "150px",
-                    overflowY: "auto",
-                    width: input.offsetWidth + "px"
-                });
-
-                matches.forEach(item => {
-                    const option = document.createElement("div");
-                    if (type === 'name') {
-                        const code = Object.entries(suppliers).find(([c, n]) => n === item)[0];
-                        option.textContent = `${item} (${code})`;
-                    } else {
-                        option.textContent = `${item} (${suppliers[item]})`;
-                    }
-                    option.style.padding = "6px 8px";
-                    option.style.cursor = "pointer";
-                    option.onmousedown = () => {
-                        const row = input.closest("tr");
-                        if (type === 'name') {
-                            const code = Object.entries(suppliers).find(([c, n]) => n === item)[0];
-                            row.cells[1].querySelector("input").value = item;
-                            row.cells[2].querySelector("input").value = code;
-                        } else {
-                            row.cells[2].querySelector("input").value = item;
-                            row.cells[1].querySelector("input").value = suppliers[item];
-                        }
-                        saveSupplierPair(input);
-                        closeSuggestions();
-                    };
-                    list.appendChild(option);
-                });
-
-                const td = input.closest('td');
-                td.style.position = 'relative';
-                td.appendChild(list);
-            }
-
-            function closeSuggestions() { document.querySelectorAll(".autocomplete-list").forEach(el => el.remove()); }
-            document.addEventListener("click", closeSuggestions);
-
-            /* -------------------- ADMIN PANEL -------------------- */
-            function toggleAdminPanel() {
-                const panel = document.getElementById("adminPanel");
-                panel.style.display = panel.style.display === "none" ? "block" : "none";
+        function saveSupplierPair(input) {
+            const row = input.closest('tr');
+            const name = row.cells[1].querySelector('input').value.trim();
+            const code = row.cells[2].querySelector('input').value.trim();
+            if (name && code) {
+                suppliers[code] = name;
+                localStorage.setItem('suppliers', JSON.stringify(suppliers));
                 refreshAdminPanel();
             }
+        }
 
-            function refreshAdminPanel() {
-                const tbody = document.getElementById("adminTableBody");
-                tbody.innerHTML = "";
-                Object.entries(suppliers).forEach(([code, name]) => {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML =
-                        `<td>${name}</td><td>${code}</td><td><button class="btn btn-sm btn-danger" onclick="deleteSupplier('${code}')">Delete</button></td>`;
-                    tbody.appendChild(tr);
-                });
+        function autoFillFromNameOnBlur(input) {
+            const row = input.closest('tr');
+            const name = input.value.trim();
+            const codeInput = row.cells[2].querySelector('input');
+            const found = Object.entries(suppliers).find(([c, n]) => n.toLowerCase() === name.toLowerCase());
+            if (found) codeInput.value = found[0];
+            saveSupplierPair(input);
+        }
+
+        function autoFillFromCodeOnBlur(input) {
+            const row = input.closest('tr');
+            const code = input.value.trim();
+            const nameInput = row.cells[1].querySelector('input');
+            if (suppliers[code]) nameInput.value = suppliers[code];
+            saveSupplierPair(input);
+        }
+
+        /* ==============================================================
+           AUTOCOMPLETE
+        ============================================================== */
+        function showSuggestions(input, type) {
+            closeSuggestions();
+            const value = input.value.trim().toLowerCase();
+            if (!value) return;
+
+            let matches = [];
+            if (type === 'name') {
+                matches = Object.values(suppliers).filter(n => n.toLowerCase().includes(value));
+            } else if (type === 'code') {
+                matches = Object.keys(suppliers).filter(c => c.startsWith(value));
             }
+            if (!matches.length) return;
 
-            function deleteSupplier(code) {
-                if (confirm("Delete supplier with code: " + code + "?")) {
-                    delete suppliers[code];
-                    localStorage.setItem("suppliers", JSON.stringify(suppliers));
-                    refreshAdminPanel();
+            const list = document.createElement('div');
+            list.className = 'autocomplete-list';
+
+            matches.forEach(item => {
+                const option = document.createElement('div');
+                if (type === 'name') {
+                    const code = Object.entries(suppliers).find(([c, n]) => n === item)[0];
+                    option.textContent = `${item} (${code})`;
+                } else {
+                    option.textContent = `${item} (${suppliers[item]})`;
                 }
-            }
-
-            /* -------------------- BACKUP / RESTORE -------------------- */
-            function backupSuppliers() {
-                const data = JSON.stringify(suppliers);
-                const blob = new Blob([data], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "suppliers-backup.json";
-                a.click();
-                URL.revokeObjectURL(url);
-                alert("Suppliers backup downloaded!");
-            }
-
-            function restoreSuppliers(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = e => {
-                    try {
-                        const imported = JSON.parse(e.target.result);
-                        if (typeof imported === "object" && !Array.isArray(imported)) {
-                            suppliers = imported;
-                            localStorage.setItem("suppliers", JSON.stringify(suppliers));
-                            refreshAdminPanel();
-                            alert("Suppliers restored!");
-                        } else alert("Invalid file!");
-                    } catch { alert("Error reading file!"); }
+                option.onmousedown = () => {
+                    const row = input.closest('tr');
+                    if (type === 'name') {
+                        const code = Object.entries(suppliers).find(([c, n]) => n === item)[0];
+                        row.cells[1].querySelector('input').value = item;
+                        row.cells[2].querySelector('input').value = code;
+                    } else {
+                        row.cells[2].querySelector('input').value = item;
+                        row.cells[1].querySelector('input').value = suppliers[item];
+                    }
+                    saveSupplierPair(input);
+                    closeSuggestions();
                 };
-                reader.readAsText(file);
-            }
-
-            /* -------------------- SAVE SPECIALIST -------------------- */
-            function saveSpecialist() {
-                const rows = document.querySelectorAll("#reportTable tbody tr");
-                let supplierRows = [],
-                    numbers = [];
-                rows.forEach(row => {
-                    let rowData = [];
-                    row.querySelectorAll("input").forEach(input => rowData.push(input.value.trim()));
-                    supplierRows.push(rowData);
-                    numbers.push(row.cells[0].innerText);
-                });
-
-                if (!supplierRows.some(r => r.some(v => v !== ""))) { alert("Enter at least one supplier."); return; }
-                const specialistName = prompt("Enter Quality Specialist Name:");
-                if (!specialistName) return;
-                document.getElementById("specialistNamePlaceholder").innerText = specialistName;
-                const storeName = document.getElementById("editableStore").innerText.trim();
-                const enteredDate = editableDate.innerText.trim();
-
-                let storedData = JSON.parse(localStorage.getItem("specialistsData")) || [];
-                storedData.push({ name: specialistName, store: storeName, date: enteredDate, suppliers: supplierRows,
-                    numbers, page: currentSet + 1 });
-                localStorage.setItem("specialistsData", JSON.stringify(storedData));
-                alert(`Report saved for ${specialistName}`);
-                clearTable();
-                resetNumbers();
-            }
-
-            /* -------------------- GENERATE COMBINED REPORT -------------------- */
-            function generateCombinedReport() {
-                const container = document.getElementById("combinedReports");
-                container.innerHTML = "";
-                const specialistsData = JSON.parse(localStorage.getItem("specialistsData")) || [];
-                if (!specialistsData.length) { alert("No saved specialists to generate report."); return; }
-
-                specialistsData.forEach((spec, sIndex) => {
-                    if (sIndex > 0) container.innerHTML += '<div class="page-break"></div>';
-                    const pageDiv = document.createElement("div");
-                    pageDiv.innerHTML = `
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div class="header-info">
-                    <p>Date: <span>${spec.date}</span></p>
-                    <p class="editableStore">Store location: <span id="editableStore">${spec.store}</span></p>
-                    <p class="specialistNamePlaceholder">Quality specialist: <span id="specialistNamePlaceholder">${spec.name}</span></p>
-                  </div>
-                  <div class="text-center flex-grow-1">
-                    <h6 class="fw-bold text-decoration-underline" style="font-size:13px; margin-top:10px;">
-                      Daily report of checking goods received from suppliers
-                    </h6>
-                  </div>
-                  <div class="text-end header-info header-logo-wrapper">
-                    <img src="logo-removebg-preview.png" alt="Makhazen Alenayah" class="header-logo">
-                  </div>
-                </div>
-                <div class="page-number">Page ${spec.page}</div>
-                <table class="table table-bordered table-sm">
-                  <thead>${document.querySelector("#reportTable thead").innerHTML}</thead>
-                  <tbody></tbody>
-                </table>
-                <div class="signature"><span>Signature</span></div>
-              `;
-                    container.appendChild(pageDiv);
-                    const tbody = pageDiv.querySelector("tbody");
-
-                    spec.suppliers.forEach((rowData, idx) => {
-                        const supplierName = rowData[0].trim();
-                        if (!supplierName) {
-                            tbody.innerHTML += `<tr><td>${spec.numbers[idx]}</td>` + rowData.map(() =>
-                                `<td></td>`).join('') + `</tr>`;
-                        } else {
-                            const rowHTML = `<tr class="with-dash"><td>${spec.numbers[idx]}</td>` +
-                                rowData.map(v => v.trim() !== "" ? v : '-').map(v => `<td>${v}</td>`).join(
-                                '') +
-                                `</tr>`;
-                            tbody.innerHTML += rowHTML;
-                        }
-                    });
-                });
-                alert("Combined report generated! Each report will print on a separate page.");
-            }
-
-            /* -------------------- CLEAR ALL -------------------- */
-            function clearAllSpecialists() {
-                if (confirm("Clear ALL saved specialists’ reports?")) {
-                    localStorage.removeItem("specialistsData");
-                    clearTable();
-                    document.getElementById("combinedReports").innerHTML = "";
-                    resetNumbers();
-                    alert("All Reports cleared.");
-                }
-            }
-
-            /* -------------------- KEYBOARD NAV (Excel-like) -------------------- */
-            document.addEventListener('keydown', function(e) {
-                const active = document.activeElement;
-                if (active && active.tagName === 'INPUT' && active.closest('table')) {
-                    const cell = active.closest('td');
-                    const row = cell.parentElement;
-                    const table = row.closest('table');
-                    const cellIndex = Array.from(row.children).indexOf(cell);
-                    const rowIndex = Array.from(table.tBodies[0].rows).indexOf(row);
-                    let targetInput = null;
-
-                    function inputIn(rowEl, idx) {
-                        const cellEl = rowEl && rowEl.cells[idx];
-                        if (!cellEl) return null;
-                        return cellEl.querySelector('input');
-                    }
-
-                    switch (e.key) {
-                        case 'ArrowRight':
-                            for (let i = cellIndex + 1; i < row.cells.length; i++) {
-                                const cand = inputIn(row, i);
-                                if (cand) { targetInput = cand; break; }
-                            }
-                            break;
-                        case 'ArrowLeft':
-                            for (let i = cellIndex - 1; i >= 0; i--) {
-                                const cand = inputIn(row, i);
-                                if (cand) { targetInput = cand; break; }
-                            }
-                            break;
-                        case 'ArrowDown':
-                            for (let r = rowIndex + 1; r < table.tBodies[0].rows.length; r++) {
-                                const cand = inputIn(table.tBodies[0].rows[r], cellIndex);
-                                if (cand) { targetInput = cand; break; }
-                            }
-                            break;
-                        case 'ArrowUp':
-                            for (let r = rowIndex - 1; r >= 0; r--) {
-                                const cand = inputIn(table.tBodies[0].rows[r], cellIndex);
-                                if (cand) { targetInput = cand; break; }
-                            }
-                            break;
-                    }
-
-                    if (targetInput) {
-                        targetInput.focus();
-                        e.preventDefault();
-                    }
-                }
+                list.appendChild(option);
             });
 
-            /* -------------------- INIT -------------------- */
-            refreshAdminPanel();
-            updateNumbers();
-        </script>
+            const td = input.closest('td');
+            td.style.position = 'relative';
+            td.appendChild(list);
+        }
 
-    </div>
+        function closeSuggestions() {
+            document.querySelectorAll('.autocomplete-list').forEach(el => el.remove());
+        }
+        document.addEventListener('click', closeSuggestions);
+
+        /* ==============================================================
+           ADMIN PANEL
+        ============================================================== */
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            refreshAdminPanel();
+        }
+
+        function refreshAdminPanel() {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+            Object.entries(suppliers).forEach(([code, name]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    `<td>${name}</td><td>${code}</td><td><button class="btn btn-sm btn-danger" onclick="deleteSupplier('${code}')">Delete</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteSupplier(code) {
+            if (confirm(`Delete supplier with code: "${code}"?`)) {
+                delete suppliers[code];
+                localStorage.setItem('suppliers', JSON.stringify(suppliers));
+                refreshAdminPanel();
+            }
+        }
+
+        /* ==============================================================
+           BACKUP / RESTORE
+        ============================================================== */
+        function backupSuppliers() {
+            const data = JSON.stringify(suppliers);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'suppliers-backup.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✅ Suppliers backup downloaded!');
+        }
+
+        function restoreSuppliers(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (typeof imported === 'object' && !Array.isArray(imported)) {
+                        suppliers = imported;
+                        localStorage.setItem('suppliers', JSON.stringify(suppliers));
+                        refreshAdminPanel();
+                        alert('✅ Suppliers restored!');
+                    } else {
+                        alert('❌ Invalid file format.');
+                    }
+                } catch (_) {
+                    alert('❌ Error reading file.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        /* ==============================================================
+           SAVE SPECIALIST
+        ============================================================== */
+        function saveSpecialist() {
+            const rows = document.querySelectorAll('#reportTable tbody tr');
+            let supplierRows = [],
+                numbers = [];
+            rows.forEach(row => {
+                const rowData = [];
+                row.querySelectorAll('input').forEach(input => rowData.push(input.value.trim()));
+                supplierRows.push(rowData);
+                numbers.push(row.cells[0].innerText);
+            });
+
+            if (!supplierRows.some(r => r.some(v => v !== ''))) {
+                alert('⚠️ Enter at least one supplier before saving.');
+                return;
+            }
+
+            const specialistName = prompt('Enter Quality Specialist Name:');
+            if (!specialistName) return;
+
+            document.getElementById('specialistNamePlaceholder').innerText = specialistName;
+            const storeName = document.getElementById('editableStore').innerText.trim();
+            const enteredDate = editableDate.innerText.trim();
+
+            const storedData = JSON.parse(localStorage.getItem('specialistsData')) || [];
+            storedData.push({
+                name: specialistName,
+                store: storeName,
+                date: enteredDate,
+                suppliers: supplierRows,
+                numbers: numbers,
+                page: currentSet + 1
+            });
+            localStorage.setItem('specialistsData', JSON.stringify(storedData));
+
+            alert(`✅ Report saved for "${specialistName}"`);
+            clearTable();
+            resetNumbers();
+        }
+
+        /* ==============================================================
+           GENERATE COMBINED REPORT
+        ============================================================== */
+        function generateCombinedReport() {
+            const container = document.getElementById('combinedReports');
+            container.innerHTML = '';
+            const specialistsData = JSON.parse(localStorage.getItem('specialistsData')) || [];
+
+            if (!specialistsData.length) {
+                alert('⚠️ No saved specialists to generate report.');
+                return;
+            }
+
+            const theadHTML = document.querySelector('#reportTable thead').innerHTML;
+
+            specialistsData.forEach((spec, sIndex) => {
+                if (sIndex > 0) container.innerHTML += '<div class="page-break"></div>';
+
+                const pageDiv = document.createElement('div');
+                pageDiv.innerHTML = `
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="header-info">
+                  <p>Date: <span>${spec.date}</span></p>
+                  <p class="editableStore">Store location: <span>${spec.store}</span></p>
+                  <p class="specialistNamePlaceholder">Quality specialist: <span>${spec.name}</span></p>
+                </div>
+                <div class="text-center flex-grow-1">
+                  <h6 class="fw-bold text-decoration-underline" style="font-size:13px; margin-top:10px;">
+                    Daily report of checking goods received from suppliers
+                  </h6>
+                </div>
+                <div class="text-end header-info header-logo-wrapper">
+                  <img src="logo-removebg-preview.png" alt="Makhazen Alenayah" class="header-logo" />
+                </div>
+              </div>
+              <div class="page-number">Page ${spec.page}</div>
+              <table class="table table-bordered table-sm">
+                <thead>${theadHTML}</thead>
+                <tbody></tbody>
+              </table>
+              <div class="signature"><span>Signature</span></div>
+            `;
+
+                container.appendChild(pageDiv);
+                const tbody = pageDiv.querySelector('tbody');
+
+                spec.suppliers.forEach((rowData, idx) => {
+                    const supplierName = rowData[0].trim();
+                    const cells = rowData.map(v => (v.trim() !== '' ? v : '-'));
+                    if (!supplierName) {
+                        tbody.innerHTML += `<tr><td>${spec.numbers[idx]}</td>` +
+                            cells.map(() => `<td></td>`).join('') +
+                            `</tr>`;
+                    } else {
+                        tbody.innerHTML += `<tr class="with-dash"><td>${spec.numbers[idx]}</td>` +
+                            cells.map(v => `<td>${v}</td>`).join('') +
+                            `</tr>`;
+                    }
+                });
+            });
+
+            alert('✅ Combined report generated! Each specialist report will print on a separate page.');
+        }
+
+        /* ==============================================================
+           CLEAR ALL
+        ============================================================== */
+        function clearAllSpecialists() {
+            if (confirm('⚠️ Clear ALL saved specialist reports?')) {
+                localStorage.removeItem('specialistsData');
+                clearTable();
+                document.getElementById('combinedReports').innerHTML = '';
+                resetNumbers();
+                alert('🗑️ All reports cleared.');
+            }
+        }
+
+        /* ==============================================================
+           KEYBOARD NAVIGATION (Excel‑like)
+        ============================================================== */
+        document.addEventListener('keydown', function(e) {
+            const active = document.activeElement;
+            if (active && active.tagName === 'INPUT' && active.closest('table')) {
+                const cell = active.closest('td');
+                const row = cell.parentElement;
+                const table = row.closest('table');
+                const cellIndex = Array.from(row.children).indexOf(cell);
+                const rowIndex = Array.from(table.tBodies[0].rows).indexOf(row);
+                let targetInput = null;
+
+                function inputIn(rowEl, idx) {
+                    if (!rowEl) return null;
+                    const cellEl = rowEl.cells[idx];
+                    if (!cellEl) return null;
+                    return cellEl.querySelector('input');
+                }
+
+                switch (e.key) {
+                    case 'ArrowRight':
+                        for (let i = cellIndex + 1; i < row.cells.length; i++) {
+                            const cand = inputIn(row, i);
+                            if (cand) { targetInput = cand; break; }
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        for (let i = cellIndex - 1; i >= 0; i--) {
+                            const cand = inputIn(row, i);
+                            if (cand) { targetInput = cand; break; }
+                        }
+                        break;
+                    case 'ArrowDown':
+                        for (let r = rowIndex + 1; r < table.tBodies[0].rows.length; r++) {
+                            const cand = inputIn(table.tBodies[0].rows[r], cellIndex);
+                            if (cand) { targetInput = cand; break; }
+                        }
+                        break;
+                    case 'ArrowUp':
+                        for (let r = rowIndex - 1; r >= 0; r--) {
+                            const cand = inputIn(table.tBodies[0].rows[r], cellIndex);
+                            if (cand) { targetInput = cand; break; }
+                        }
+                        break;
+                }
+
+                if (targetInput) {
+                    targetInput.focus();
+                    e.preventDefault();
+                }
+            }
+        });
+
+        /* ==============================================================
+           INIT
+        ============================================================== */
+        refreshAdminPanel();
+        updateNumbers();
+
+        // If the main logo fails to load, show a fallback
+        document.getElementById('mainLogo')?.addEventListener('error', function() {
+            this.style.display = 'none';
+            const wrapper = this.closest('.header-logo-wrapper');
+            const fallback = document.createElement('span');
+            fallback.textContent = '📦 MAKHAZEN';
+            fallback.style.cssText = 'font-size:28px; font-weight:bold; color:#1a3a5c; margin-right:20px;';
+            wrapper.appendChild(fallback);
+        });
+    </script>
+
 </body>
 </html>
