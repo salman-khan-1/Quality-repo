@@ -70,7 +70,7 @@ table input {
 .header-info p { font-weight: bold; font-size: 13px; margin: 0; }
 .header-info span[contenteditable] { border-bottom: 1px dotted #000; padding: 0 2px; min-width: 50px; display:inline-block; }
 
-/* ---- LOGO (from latest version) ---- */
+/* ---- LOGO (using IMG tag for reliable printing) ---- */
 .header-logo-wrapper {
   display: flex;
   flex-direction: column;
@@ -79,29 +79,13 @@ table input {
   min-height: 100px;
   flex-shrink: 0;
 }
-.logo-bg {
+.header-logo-wrapper img {
   width: 280px;
   height: 112px;
-  background-image: url('newlogo.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: contain;
+  display: block;
   margin-right: 15px;
-  flex-shrink: 0;
   background-color: transparent;
-}
-.logo-bg.error {
-  background-image: none !important;
-  background-color: #f0f0f0 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: bold;
-  color: #1a3a5c;
-}
-.logo-bg.error::after {
-  content: "📦 MAKHAZEN";
 }
 
 /* ---- signature ---- */
@@ -113,7 +97,7 @@ table input {
   text-align:center;
   font-weight:bold;
   margin-bottom:5px;
-  margin-top: -41px;   /* from latest version */
+  margin-top: -41px;
 }
 
 .no-print { margin:10px 0; }
@@ -133,7 +117,7 @@ table input {
   padding: 12px;
 }
 
-/* ===== Print rules (centered, single‑page) ===== */
+/* ===== Print rules (centered, single‑page, logo visible) ===== */
 @media print {
   @page {
     size: A4 landscape;
@@ -172,22 +156,20 @@ table input {
     display: none !important;
   }
 
-  /* logo print styles */
-  .logo-bg {
+  /* ---- logo prints reliably with IMG tag ---- */
+  .header-logo-wrapper img {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
     width: 280px !important;
     height: 112px !important;
     margin-right: 15px !important;
-    background-size: contain !important;
-    background-color: transparent !important;
+    object-fit: contain !important;
   }
-  #combinedReports .logo-bg {
+  #combinedReports .header-logo-wrapper img {
     width: 280px !important;
     height: 112px !important;
     margin-right: 15px !important;
-    background-size: contain !important;
-    background-color: transparent !important;
+    object-fit: contain !important;
   }
 }
 
@@ -218,15 +200,12 @@ table input {
 }
 
 /* ===== Generated reports also use the same logo style ===== */
-#combinedReports .logo-bg {
+#combinedReports .header-logo-wrapper img {
   width: 280px;
   height: 112px;
-  background-image: url('newlogo.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: contain;
+  display: block;
   margin-right: 15px;
-  flex-shrink: 0;
   background-color: transparent;
 }
 </style>
@@ -294,7 +273,7 @@ table input {
   </div>
 </div>
 
-<!-- ===== HEADER (with logo, -41px page number margin) ===== -->
+<!-- ===== HEADER (with IMG logo, -41px page number margin) ===== -->
 <div class="no-print">
   <div class="d-flex justify-content-between align-items-start mb-2">
     <!-- Left: date, store, specialist -->
@@ -311,9 +290,9 @@ table input {
       </h6>
     </div>
 
-    <!-- Right: LOGO (112px height, transparent, contain) -->
+    <!-- Right: LOGO (IMG tag, 280x112, transparent, prints reliably) -->
     <div class="text-end header-info header-logo-wrapper">
-      <div class="logo-bg" id="mainLogo"></div>
+      <img src="newlogo.png" alt="Makhazen Alenayah" id="mainLogo" />
     </div>
   </div>
 
@@ -589,7 +568,7 @@ function generateCombinedReport() {
           </h6>
         </div>
         <div class="text-end header-info header-logo-wrapper">
-          <div class="logo-bg"></div>
+          <img src="newlogo.png" alt="Makhazen Alenayah" class="logo-print" />
         </div>
       </div>
       <div class="page-number">Page ${spec.page}</div>
@@ -684,15 +663,15 @@ document.addEventListener('keydown', function (e) {
 refreshAdminPanel();
 updateNumbers();
 
-// Logo fallback
+// Logo fallback: if image fails to load, show a text placeholder
 document.getElementById('mainLogo')?.addEventListener('error', function() {
-  this.classList.add('error');
+  this.style.display = 'none';
+  const wrapper = this.closest('.header-logo-wrapper');
+  const fallback = document.createElement('span');
+  fallback.textContent = '📦 MAKHAZEN';
+  fallback.style.cssText = 'font-size:24px; font-weight:bold; color:#1a3a5c; margin-right:15px;';
+  wrapper.appendChild(fallback);
 });
-document.addEventListener('error', function(e) {
-  if (e.target.classList && e.target.classList.contains('logo-bg')) {
-    e.target.classList.add('error');
-  }
-}, true);
 </script>
 
 </body>
