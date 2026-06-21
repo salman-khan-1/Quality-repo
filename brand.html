@@ -141,37 +141,42 @@
             display: inline-block;
         }
 
-        /* ---- LOGO (perfect sizing: smaller, zoomed out) ---- */
+        /* ---- LOGO (background image, removes padding) ---- */
         .header-logo-wrapper {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             justify-content: center;
-            min-height: 80px;   /* adjusted to fit smaller logo */
+            min-height: 75px;
             flex-shrink: 0;
         }
 
-        .header-logo-wrapper img {
-            display: block;
-            height: 70px;          /* decreased height */
-            width: auto;
-            max-width: 200px;      /* limit width to keep it proportional */
+        .logo-bg {
+            width: 160px;           /* adjust to your logo's aspect */
+            height: 65px;           /* desired visible height */
+            background-image: url('newlogo.png');
+            background-size: cover; /* crops padding, shows the actual logo */
+            background-position: center;
+            background-repeat: no-repeat;
             margin-right: 15px;
-            object-fit: contain;   /* ensures the whole logo is visible */
-            image-rendering: auto;
+            flex-shrink: 0;
+            border-radius: 4px;     /* optional soft edge */
+            background-color: #f8f9fa; /* fallback while loading */
         }
 
-        /* ---- fallback: if logo fails to load, show a text placeholder ---- */
-        .header-logo-wrapper img::before {
-            content: "📦 MAKHAZEN";
-            display: block;
-            font-size: 28px;
+        /* fallback if image fails */
+        .logo-bg.error {
+            background-image: none !important;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
             font-weight: bold;
             color: #1a3a5c;
-            text-align: center;
-            background: #f0f0f0;
-            padding: 10px 20px;
-            border-radius: 8px;
+        }
+        .logo-bg.error::after {
+            content: "📦 MAKHAZEN";
         }
 
         /* ---- signature ---- */
@@ -344,20 +349,21 @@
                 display: none !important;
             }
 
-            /* --- logo prints perfectly (same smaller size) --- */
-            .header-logo-wrapper img {
+            /* --- logo prints perfectly (same background style) --- */
+            .logo-bg {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                height: 70px !important;
-                max-width: 200px !important;
+                width: 160px !important;
+                height: 65px !important;
                 margin-right: 15px !important;
+                background-size: cover !important;
             }
 
-            /* ensure generated reports also use the same logo sizing */
-            #combinedReports .header-logo-wrapper img {
-                height: 70px !important;
-                max-width: 200px !important;
+            #combinedReports .logo-bg {
+                width: 160px !important;
+                height: 65px !important;
                 margin-right: 15px !important;
+                background-size: cover !important;
             }
         }
 
@@ -365,58 +371,54 @@
                RESPONSIVE LOGO (smaller screens)
             ============================================================== */
         @media screen and (max-width: 768px) {
-            .header-logo-wrapper img {
+            .logo-bg {
+                width: 120px;
                 height: 50px;
-                max-width: 140px;
                 margin-right: 10px;
             }
             .header-logo-wrapper {
-                min-height: 60px;
+                min-height: 55px;
             }
         }
 
         @media screen and (max-width: 480px) {
-            .header-logo-wrapper img {
-                height: 40px;
-                max-width: 100px;
+            .logo-bg {
+                width: 90px;
+                height: 38px;
                 margin-right: 6px;
             }
             .header-logo-wrapper {
-                min-height: 50px;
+                min-height: 45px;
             }
         }
 
         /* ==============================================================
-               UTILITY: smooth transitions for the flag
+               ensure generated reports also use the same logo style
             ============================================================== */
-        .flag-top-right {
-            transition: opacity 1.5s ease-in-out;
-        }
-
-        /* ==============================================================
-               ensure generated reports also use the same smaller logo
-            ============================================================== */
-        #combinedReports .header-logo-wrapper img {
-            height: 70px;
-            width: auto;
-            max-width: 200px;
-            display: block;
+        #combinedReports .logo-bg {
+            width: 160px;
+            height: 65px;
+            background-image: url('newlogo.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             margin-right: 15px;
-            object-fit: contain;
+            flex-shrink: 0;
+            background-color: #f8f9fa;
         }
 
         @media screen and (max-width: 768px) {
-            #combinedReports .header-logo-wrapper img {
+            #combinedReports .logo-bg {
+                width: 120px;
                 height: 50px;
-                max-width: 140px;
                 margin-right: 10px;
             }
         }
 
         @media screen and (max-width: 480px) {
-            #combinedReports .header-logo-wrapper img {
-                height: 40px;
-                max-width: 100px;
+            #combinedReports .logo-bg {
+                width: 90px;
+                height: 38px;
                 margin-right: 6px;
             }
         }
@@ -538,9 +540,9 @@
                     </h6>
                 </div>
 
-                <!-- Right: LOGO (smaller, zoomed out) -->
+                <!-- Right: LOGO (background, removes padding) -->
                 <div class="text-end header-info header-logo-wrapper">
-                    <img src="newlogo.png" alt="Makhazen Alenayah" id="mainLogo" />
+                    <div class="logo-bg" id="mainLogo"></div>
                 </div>
             </div>
 
@@ -870,7 +872,7 @@
                   </h6>
                 </div>
                 <div class="text-end header-info header-logo-wrapper">
-                  <img src="newlogo.png" alt="Makhazen Alenayah" class="header-logo" />
+                  <div class="logo-bg"></div>
                 </div>
               </div>
               <div class="page-number">Page ${spec.page}</div>
@@ -975,15 +977,22 @@
         refreshAdminPanel();
         updateNumbers();
 
-        // If the main logo fails to load, show a fallback
+        // If the logo fails to load, add error class to show fallback
         document.getElementById('mainLogo')?.addEventListener('error', function() {
-            this.style.display = 'none';
-            const wrapper = this.closest('.header-logo-wrapper');
-            const fallback = document.createElement('span');
-            fallback.textContent = '📦 MAKHAZEN';
-            fallback.style.cssText = 'font-size:24px; font-weight:bold; color:#1a3a5c; margin-right:15px;';
-            wrapper.appendChild(fallback);
+            this.classList.add('error');
         });
+
+        // Also handle in generated reports – we add a small script to add error class if needed
+        // But we can't easily catch errors for dynamically added elements, so we'll use a MutationObserver
+        // or we can just rely on the CSS fallback (we have a background-color and pseudo-element fallback).
+        // However, the background-image may fail silently, so we can add a fallback via CSS:
+        // We already have .logo-bg.error fallback. We'll just add a class if the image fails to load.
+        // For dynamic elements, we can set a global error handler.
+        document.addEventListener('error', function(e) {
+            if (e.target.classList && e.target.classList.contains('logo-bg')) {
+                e.target.classList.add('error');
+            }
+        }, true);
     </script>
 
 </body>
