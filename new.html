@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+                  <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -115,11 +115,11 @@
             display: inline-block;
         }
 
-        /* ---- Header logo (replaces text) ---- */
+        /* ---- Header logo (replaces text) - BIGGER SIZE ---- */
         .header-logo {
-            height: 60px;
+            height: 90px;
             width: auto;
-            max-width: 200px;
+            max-width: 280px;
             display: block;
             margin-left: auto;
         }
@@ -222,7 +222,7 @@
             #combinedReports>div:last-child .page-break {
                 display: none !important;
             }
-            /* ensure logo prints */
+            /* logo prints fine */
             .header-logo {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -271,20 +271,20 @@
             flex-direction: column;
             align-items: flex-end;
             justify-content: center;
-            min-height: 70px;
+            min-height: 90px;
         }
         .header-logo-wrapper img {
-            height: 60px;
+            height: 90px;
             width: auto;
-            max-width: 200px;
+            max-width: 280px;
             display: block;
         }
 
-        /* preserve layout when printing generated reports */
+        /* ensure generated reports also use big logo */
         #combinedReports .header-logo-wrapper img {
-            height: 60px;
+            height: 90px;
             width: auto;
-            max-width: 200px;
+            max-width: 280px;
         }
     </style>
 </head>
@@ -367,7 +367,7 @@
                     </h6>
                 </div>
 
-                <!-- Right: LOGO instead of "Makhazen Alenayah / Quality section" -->
+                <!-- Right: BIG LOGO instead of "Makhazen Alenayah / Quality section" -->
                 <div class="text-end header-info header-logo-wrapper">
                     <img src="logo-removebg-preview.png" alt="Makhazen Alenayah" class="header-logo">
                 </div>
